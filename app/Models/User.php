@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'google_id'
+        'google_id',
+        'role'
     ];
 
     /**
@@ -32,7 +33,21 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id'
     ];
+
+    /**
+     * Relationship of the warranties
+     */
+    public function warranties(): HasMany
+    {
+        return $this->hasMany(Warranty::class);
+    }
+
+    public function inquiries()
+    {
+        return $this->hasMany(WarrantyInquiries::class);
+    }
 
     /**
      * Get the attributes that should be cast.

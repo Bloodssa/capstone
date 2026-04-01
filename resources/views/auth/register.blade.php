@@ -3,61 +3,73 @@
         @csrf
 
         <div class="space-y-2">
-            <div class="text-center">
-                <h1 class="text-2xl font-bold leading-tight tracking-tight text-theme-hover md:text-3xl">Create an
-                    Account
+            <div class="flex flex-col items-center space-y-3">
+                <x-icons.mark />
+                <h1 class="text-2xl font-bold leading-tight tracking-tight text-neutral-900 md:text-3xl">
+                    {{ isset($warranty) ? 'Claim your Warranty' : 'Create an Account' }}
                 </h1>
-                <p class="text-gray-500 mt-2">Register to start tracking device warranties.</p>
+                @if (isset($warranty))
+                    <div class="mt-3 px-4 py-2 rounded-md border border-gray-300">
+                        <p class="text-sm text-neutral-500">
+                            Registering for: <span
+                                class="font-semibold text-neutral-900">{{ $warranty->product->name }}</span>
+                        </p>
+                    </div>
+                @else
+                    <p class="text-neutral-500 mt-2 text-center">
+                        Register to start tracking device warranties.
+                    </p>
+                @endif
             </div>
 
             <!-- Name -->
             <div>
-                <x-input-label for="name" :value="__('Name')" />
-                <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')"
+                <x-forms.input-label for="name" :value="__('Name')" />
+                <x-forms.text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')"
                     required autofocus autocomplete="name" />
-                <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                <x-forms.input-error :messages="$errors->get('name')" class="mt-2" />
             </div>
 
             <!-- Email Address -->
             <div class="mt-4">
-                <x-input-label for="email" :value="__('Email')" />
-                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
+                <x-forms.input-label for="email" :value="__('Email')" />
+                <x-forms.text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
                     required autocomplete="username" />
-                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                <x-forms.input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
 
             <!-- Password -->
             <div class="mt-4">
-                <x-input-label for="password" :value="__('Password')" />
+                <x-forms.input-label for="password" :value="__('Password')" />
 
-                <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required
+                <x-forms.text-input id="password" class="block mt-1 w-full" type="password" name="password" required
                     autocomplete="new-password" />
 
-                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                <x-forms.input-error :messages="$errors->get('password')" class="mt-2" />
             </div>
 
             <!-- Confirm Password -->
             <div class="mt-4">
-                <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                <x-forms.input-label for="password_confirmation" :value="__('Confirm Password')" />
 
-                <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password"
+                <x-forms.text-input id="password_confirmation" class="block mt-1 w-full" type="password"
                     name="password_confirmation" required autocomplete="new-password" />
 
-                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+                <x-forms.input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
             </div>
 
             <div class="space-y-4">
                 <div class="flex items-center justify-end mt-4">
-                    <x-primary-button class="w-full text-center">
-                        {{ __('Register') }}
-                    </x-primary-button>
+                    <x-ui.primary-button class="w-full text-center">
+                        {{ isset($warranty) ? __('Claim Warranty & Register') : __('Register') }}
+                    </x-ui.primary-button>
                 </div>
 
-                <x-line />
+                <x-icons.line />
 
                 <div class="w-full h-10">
                     <a href="{{ route('auth.google') }}"
-                        class="flex items-center justify-center w-full px-4 py-2.5 space-x-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        class="flex items-center justify-center w-full px-4 py-2.5 space-x-3 text-sm font-medium text-neutral-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover transition-all duration-200 ease-in-out">
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
                             <path fill="#FFC107"
@@ -79,12 +91,16 @@
                 </div>
             </div>
 
-            <div class="flex justify-center mt-4 space-x-1">
-                <p class="text-sm font-light text-gray-500 text-center">
-                    Already have an account? <a href="{{ route('login') }}"
-                        class="font-medium text-theme-blue hover:underline">Login here</a>
-                </p>
-            </div>
+            @if (!isset($warranty))
+                <div class="flex justify-center mt-4 space-x-1">
+                    <p class="text-sm font-light text-gray-500 text-center">
+                        Already have an account?
+                        <a href="{{ route('login') }}" class="font-medium text-neutral-900 hover:underline">
+                            Login here
+                        </a>
+                    </p>
+                </div>
+            @endif
         </div>
     </form>
 </x-guest-layout>

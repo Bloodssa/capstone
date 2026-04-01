@@ -1,32 +1,43 @@
 <x-guest-layout>
     <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if (session('status'))
+        <x-ui.toast type="success" message="{{ session('status') }}" />
+    @endif
+
+    @if (session('error'))
+        <x-ui.toast type="error" message="{{ session('error') }}" />
+    @endif
 
     <form method="POST" action="{{ route('login') }}" class="py-2 px-3">
         @csrf
 
-        <div class="text-center">
-            <h1 class="text-2xl font-bold leading-tight tracking-tight text-theme-hover md:text-3xl">Welcome Back
-            </h1>
-            <p class="text-gray-500 mt-2">Sign in to access your warranty records</p>
+        <div class="flex flex-col items-center space-y-3">
+            <x-icons.mark />
+
+            <div class="flex flex-col items-center">
+                <h1 class="text-2xl font-bold leading-tight tracking-tight text-neutral-900 md:text-3xl">
+                    Welcome Back
+                </h1>
+                <p class="text-gray-500 mt-1">Sign in to access your warranty records</p>
+            </div>
         </div>
 
         <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required
-                autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-forms.input-label for="email" :value="__('Email')" />
+            <x-forms.text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
+                required autofocus autocomplete="username" />
+            <x-forms.input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+            <x-forms.input-label for="password" :value="__('Password')" />
 
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required
+            <x-forms.text-input id="password" class="block mt-1 w-full" type="password" name="password" required
                 autocomplete="current-password" />
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <x-forms.input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Remember Me -->
@@ -34,12 +45,13 @@
             <div class="block mt-4 flex flex-col space-y-3 sm:flex-row justify-between">
                 <label for="remember_me" class="inline-flex items-center">
                     <input id="remember_me" type="checkbox"
-                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                        class="rounded-md border-gray-300 text-neutral-900 focus:ring-neutral-900"
+                        name="remember">
+                    <span class="ms-2 text-sm text-neutral-900">{{ __('Remember me') }}</span>
                 </label>
 
                 @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    <a class="underline text-sm text-neutral-900 hover:text-neutral-600 rounded-md focus:outline-none"
                         href="{{ route('password.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>
@@ -47,16 +59,16 @@
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <x-primary-button class="w-full text-center">
+                <x-ui.primary-button class="w-full text-center">
                     {{ __('Log in') }}
-                </x-primary-button>
+                </x-ui.primary-button>
             </div>
 
-            <x-line />
+            <x-icons.line />
 
             <div class="w-full h-10">
                 <a href="{{ route('auth.google') }}"
-                    class="flex items-center justify-center w-full px-4 py-2.5 space-x-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    class="flex items-center justify-center w-full px-4 py-2.5 space-x-3 text-sm outline-none font-medium text-neutral-900 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover transition-all duration-200 ease-in-out">
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
                         <path fill="#FFC107"
@@ -79,9 +91,9 @@
         </div>
 
         <div class="flex justify-center mt-4 space-x-1">
-            <p class="text-sm font-light text-gray-500 text-center">
+            <p class="text-sm font-light text-gray-500 text-center ">
                 Don’t have an account yet?
-                <a href="{{ route('register') }}" class="font-medium text-theme-blue hover:underline">Sign up</a>
+                <a href="{{ route('register') }}" class="font-medium text-neutral-900 hover:underline">Sign up</a>
             </p>
         </div>
     </form>

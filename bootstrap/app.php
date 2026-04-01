@@ -20,5 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
+        $middleware->alias([
+            'customer' => \App\Http\Middleware\Customer::class,
+            'manager' => \App\Http\Middleware\Manager::class,
+        ]);
     })
     ->create();

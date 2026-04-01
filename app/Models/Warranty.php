@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Warranty extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'product_id', 
+        'serial_number', 
+        'purchase_date', 
+        'expiry_date', 
+        'status',
+        'is_claimed'
+    ];
+
+    // cast the date to Carbon
+    protected $casts = [
+        'purchase_date' => 'date',
+        'expiry_date' => 'date',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function inquiries()
+    {
+        return $this->hasMany(WarrantyInquiries::class);
+    }
+}

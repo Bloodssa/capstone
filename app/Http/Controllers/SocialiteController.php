@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Exception;
-use Illuminate\Http\Request;
+use App\Models\Warranty;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -40,26 +40,35 @@ class SocialiteController extends Controller
 
             // if the user is not registered with google id then create
             if (! $user) {
-                // insert the user data if  not login with the google sign in
-                $user = User::updateOrCreate(
-                    ['email' => $userGoogle->email],
+                // insert the user data if not login with the google sign in
+                $user = User::create(
                     [
-                    'name' => $userGoogle->name,
-                    'google_id' => $userGoogle->id,
-                    'password' => null,
-                ]);
+                        'name' => $userGoogle->name,
+                        'email' => $userGoogle->email,
+                        'google_id' => $userGoogle->id,
+                        'password' => null,
+                        'role' => 'customer'
+                    ]
+                );
             }
+
+            // clear the invitation_token
+            $this->claimWarranty($user);
 
             // log in and regenerate session
             Auth::login($user);
             request()->session()->regenerate();
- 
-            return redirect()->intended('dashboard');
+
+            return match ($user->role) {
+                'admin' => redirect()->intended(route('dashboard')),
+                'staff' => redirect()->intended(route('dashboard')),
+                'customer' => redirect()->intended(route('home')),
+                default => redirect('/'),
+            };
         } catch (InvalidStateException $e) {
             // OAUTH Session expired
             return redirect('/login')->with('error', 'Session expired. Please try again.');
-        } catch (\Exception $e) {
-
+        } catch (Exception $e) {
             // server failed
             return redirect('/login')
                 ->with('error', 'Google Login failed. Please try later.')
