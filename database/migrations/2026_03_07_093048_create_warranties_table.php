@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('serial_number')->unique();
             $table->date('purchase_date');
             $table->date('expiry_date');
-            $table->string('status')->default('active')->index();    
+            $table->enum('status', ['active', 'pending', 'near-expiry', 'expired'])->index();    
             $table->boolean('is_claimed')->default(false);
             $table->timestamps();
         });

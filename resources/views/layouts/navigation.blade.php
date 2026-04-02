@@ -16,34 +16,35 @@
                     <x-ui.nav-link :href="route('warranty')" :active="request()->routeIs('warranty', 'warranty.show')">
                         {{ __('My Warranty') }}
                     </x-ui.nav-link>
+                    <x-ui.nav-link :href="route('inquiries')" :active="request()->routeIs('inquiries')">
+                        {{ __('Inquiries') }}
+                    </x-ui.nav-link>
                     <x-ui.nav-link :href="route('history')" :active="request()->routeIs('history')">
                         {{ __('History') }}
-                    </x-ui.nav-link>
-                    <x-ui.nav-link :href="route('replacement')" :active="request()->routeIs('replacement')">
-                        {{ __('Replacements') }}
                     </x-ui.nav-link>
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <button @click="$dispatch('open-notifications')" class="border border-gray-300 p-2 rounded-full hover:bg-gray-100 transition-colors duration-150">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-900" width="23" height="23"
-                        fill="currentColor" viewBox="0 0 16 16">
-                        <path
-                            d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
-                    </svg>
-                </button>
+                <div x-data="{ notificationModal: false }" class="relative">
+                    <button @click="notificationModal = !notificationModal"
+                        class="border border-gray-300 p-2 rounded-full hover:bg-gray-100 transition-colors duration-150">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-900" width="23" height="23"
+                            fill="currentColor" viewBox="0 0 16 16">
+                            <path
+                                d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+                        </svg>
+                    </button>
 
-                <x-modals.notification :notifications=[] />
+                    <x-modals.notification :notifications="$notifications" />
+                </div>
 
                 <x-ui.dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-
                             <x-icons.avatar :name="Auth::user()->name" size="md" />
-
                         </button>
                     </x-slot>
 
@@ -67,15 +68,16 @@
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="$dispatch('open-notifications')">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-900" width="23" height="23"
-                        fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
-                        <path
-                            d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
-                    </svg>
-                </button>
-
-                <x-modals.notification :notifications=[] />
+                <div x-data="{ notificationModal: false }" class="relative me-2">
+                    <button @click="notificationModal = !notificationModal" class="p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-900" width="23" height="23"
+                            fill="currentColor" viewBox="0 0 16 16">
+                            <path
+                                d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+                        </svg>
+                    </button>
+                    <x-modals.notification :notifications="$notifications" />
+                </div>
 
                 <button @click="open = ! open"
                     class="inline-flex items-center justify-center p-2 rounded-md text-neutral-900 hover:text-neutral-600 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">

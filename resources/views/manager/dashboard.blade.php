@@ -28,7 +28,7 @@
                 <div class="max-w-full overflow-x-auto custom-scrollbar">
                     <div class="min-w-125 xl:min-w-full">
                         {{-- Chart Element --}}
-                        <div id="charts" class="h-87.5 w-full"></div>
+                        <div id="warranty-status-chart" data-categories='@json($chartMonths)' data-active='@json($chartActive)' data-near-expiry='@json($chartNearExpiry)' data-expired='@json($chartExpired)' class="h-87.5 w-full"></div>
                     </div>
                 </div>
             </div>
@@ -66,7 +66,10 @@
                             </div>
                         </div>
                     @empty
-                        <p>Nothing</p>
+                        <div class="w-full py-6 px-3 lg:py-20 flex items-center justify-center">
+                            <x-ui.is-empty title="Reported Products"
+                                subTitle="There is no most reported products at the moment" />
+                        </div>
                     @endforelse
                 </div>
             </div>
@@ -109,7 +112,12 @@
                                     {{ Str::title($latestInquiry->status) }}</td>
                             </tr>
                         @empty
-                            <h1>Nothing</h1>
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <x-ui.is-empty title="Latest warranty inquiries"
+                                        subTitle="There is no latest inquiries at the moment" />
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -150,7 +158,12 @@
                                     {{ $pendingInquiry->created_at->format('M d, Y') }}</td>
                             </tr>
                         @empty
-                            <h1>Nothing</h1>
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <x-ui.is-empty title="Pending warranty inquiries"
+                                        subTitle="There is no pending inquiries at the moment" />
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -158,64 +171,5 @@
         </div>
     </div>
 </x-admin-layout>
-<script>
-    var options = {
-        series: [{
-                name: 'Active',
-                data: @json($chartActive)
-            },
-            {
-                name: 'Near Expiry',
-                data: @json($chartNearExpiry)
-            },
-            {
-                name: 'Expired',
-                data: @json($chartExpired)
-            }
-        ],
-        chart: {
-            type: 'bar',
-            height: 350
-        },
-        colors: ['oklch(39.3% 0.095 152.535)', 'oklch(83.7% 0.128 66.29)', 'oklch(50.5% 0.213 27.518)'],
-        plotOptions: {
-            bar: {
-                horizontal: false,
-                columnWidth: '55%',
-                borderRadius: 5,
-                borderRadiusApplication: 'end'
-            },
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            show: true,
-            width: 2,
-            colors: ['transparent']
-        },
-        xaxis: {
-            categories: @json($chartMonths)
-        },
-        yaxis: {
-            title: {
-                text: 'Sum of status of warranties per month'
-            }
-        },
-        fill: {
-            opacity: 1
-        },
-        tooltip: {
-            y: {
-                formatter: function(val) {
-                    return val + " warranties"
-                }
-            }
-        }
-    };
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var chart = new ApexCharts(document.querySelector("#charts"), options);
-        chart.render();
-    });
-</script>
+@vite(['resources/js/charts.js'])

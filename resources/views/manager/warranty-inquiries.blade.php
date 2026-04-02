@@ -69,7 +69,8 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     <div class="text-sm">
-                                        <p class="font-semibold text-neutral-900 text-xs">{{ $warrantyInquiry->warranty->product->name }}
+                                        <p class="font-semibold text-neutral-900 text-xs">
+                                            {{ $warrantyInquiry->warranty->product->name }}
                                         </p>
                                         <p class="text-neutral-500 truncate max-w-xs">
                                             "{{ Str::limit($warrantyInquiry->message, 15, '...') }}"</p>
@@ -92,11 +93,17 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-neutral-900">
-                                    <a href="{{ route('inquiry-action', $warrantyInquiry->id) }}" class="px-4 py-2 text-white bg-neutral-900 rounded-md font-semibold">Respond</a>
+                                    <a href="{{ route('inquiry-action', $warrantyInquiry->id) }}"
+                                        class="px-4 py-2 text-white bg-neutral-900 rounded-md font-semibold">Respond</a>
                                 </td>
                             </tr>
                         @empty
-                            <p>Nothing</p>
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <x-ui.is-empty title="Warranty Inquiries"
+                                        subTitle="There is no warranty inquiries at the moment" />
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>

@@ -176,8 +176,15 @@ class ManagerController extends Controller
      * Helper function for pdf and blade reports 
      */
     private function reportsData(Request $request)
-    {
+    {   
+        $allowedPeriod = [7, 12, 30];
         $period = $request->get('period', '12');
+
+        // prevent error when user tries to put a string in query param
+        if(!in_array($period, $allowedPeriod)) {
+            $period = 12;
+        }
+
         $interval = match ($period) {
             '7' => now()->subDays(6)->startOfDay(),
             '30' => now()->subDays(29)->startOfDay(),

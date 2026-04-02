@@ -9,10 +9,10 @@ class Charts {
     }
 
     // initialize
-    init()
-    {
+    init() {
         this.reportLineChart();
         this.reportBarChart();
+        this.dashboardWarranties();
     }
 
     /**
@@ -68,6 +68,9 @@ class Charts {
         chart.render();
     }
 
+    /**
+     * Bar/Donut Chart for the most reported products in reports page
+     */
     reportBarChart() {
         const el = document.querySelector('#top-reported-products');
         if (!el) return;
@@ -130,6 +133,78 @@ class Charts {
                     legend: { position: 'bottom' }
                 }
             }]
+        };
+
+        const chart = new ApexCharts(el, options);
+        chart.render();
+    }
+
+    /**
+     * Line chart for the dashboard warranties
+     */
+    dashboardWarranties() {
+        
+        const el = document.querySelector('#warranty-status-chart');
+        if(!el) return;
+
+        const active = el.dataset.active ? JSON.parse(el.dataset.active) : [];
+        const nearExpiry = el.dataset.nearExpiry ? JSON.parse(el.dataset.nearExpiry) : [];
+        const expired = el.dataset.expired ? JSON.parse(el.dataset.expired) : [];
+        const categories = el.dataset.categories ? JSON.parse(el.dataset.categories) : [];
+        console.log(active);
+        const options = {
+            series: [{
+                name: 'Active',
+                data: active
+            },
+            {
+                name: 'Near Expiry',
+                data: nearExpiry
+            },
+            {
+                name: 'Expired',
+                data: expired
+            }
+            ],
+            chart: {
+                type: 'bar',
+                height: 350
+            },
+            colors: ['oklch(39.3% 0.095 152.535)', 'oklch(83.7% 0.128 66.29)', 'oklch(50.5% 0.213 27.518)'],
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '55%',
+                    borderRadius: 5,
+                    borderRadiusApplication: 'end'
+                },
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                show: true,
+                width: 2,
+                colors: ['transparent']
+            },
+            xaxis: {
+                categories: categories
+            },
+            yaxis: {
+                title: {
+                    text: 'Sum of status of warranties per month'
+                }
+            },
+            fill: {
+                opacity: 1
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val + " warranties"
+                    }
+                }
+            }
         };
 
         const chart = new ApexCharts(el, options);

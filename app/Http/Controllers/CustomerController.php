@@ -5,21 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Warranty;
-use App\Models\InquiryResponse;
 use App\Models\WarrantyInquiries;
-use App\Models\WarrantyResponse;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index() 
+    public function index()
     {
         $activeWarranties = Warranty::whereUserId(Auth::user()->id)
             ->where('status', '!=', 'expired')
             ->count();
-            
+
         $expWarCount = Warranty::whereUserId(Auth::user()->id)
             ->where('status', 'near-expiry')
             ->count();
@@ -64,15 +63,79 @@ class CustomerController extends Controller
      */
     public function history()
     {
-        return view('customer.history');
-    }
+        $userId = Auth::user()->id;
 
+        // registered warranty history map it with the type, date, title, and description
+        $registeredWarranty = Warranty::with('product')
+            ->where('user_id', $userId)
+            ->get()
+            ->map(fn($registered) => (object)[
+                'type' => 'success',
+                'date' => $registered->created_at,
+                'title' => "Registered {$registered->product->name}",
+                'description' => "Serial: {$registered->serial_number}"
+            ]);
+
+        $inquiries = WarrantyInquiries::with('warranty.product')
+            ->where('user_id', $userId)
+            ->get()
+            ->map(fn($inquiry) => (object)[
+                'type' => 'new',
+                'date' => $inquiry->created_at,
+                'title' => "Opened an inquiry for {$inquiry->warranty->product->name}",
+                'description' => Str::limit($inquiry->message, 60),
+            ]);
+
+        $statusUpdates = WarrantyInquiries::with('warranty.product')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['resolved', 'replaced', 'closed'])
+            ->get()
+            ->map(function ($update) {
+
+                $type = match ($update->status) {
+                    'resolved' => 'success',
+                    'replaced' => 'success',
+                    'closed' => 'default',
+                };
+
+                return (object)[
+                    'type' => $type,
+                    'date' => $update->updated_at,
+                    'title' => "Inquiry {$update->status}",
+                    'description' => "Your inquiry for {$update->warranty->product->name} was {$update->status}.",
+                ];
+            });
+
+        $expiredWarranty = Warranty::with('product')
+            ->where('user_id', $userId)
+            ->whereDate('expiry_date', '<=', now())
+            ->get()
+            ->map(fn($w) => (object)[
+                'type' => 'expire',
+                'date' => $w->expiry_date,
+                'title' => "{$w->product->name} warranty expired",
+                'description' => "Expired on " . $w->expiry_date->format('M d, Y'),
+            ]);
+
+        // refactor with paginator
+        // merge the queries to loop it in the blade foreach
+        $history = collect()
+            ->concat($registeredWarranty)
+            ->concat($inquiries)
+            ->concat($statusUpdates)
+            ->concat($expiredWarranty)
+            ->sortBy('date');
+
+        return view('customer.history', [
+            'history' => $history
+        ]);
+    }
     /**
      * Display list of replacement
      */
-    public function replacement()
+    public function inquiries()
     {
-        return view('customer.replacements');
+        return view('customer.inquiries');
     }
 
     /**

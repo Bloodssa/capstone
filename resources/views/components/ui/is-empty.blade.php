@@ -8,5 +8,5 @@
         </svg>
     </div>
     <h3 class="text-lg font-semibold text-neutral-900">{{ $title }}</h3>
-    <p class="mt-1 text-sm text-neutral-500 max-w-xs mx-auto">{{ $subTitle }}</p>
+    <p class="mt-1 text-sm text-neutral-500 max-w-xs mx-auto text-wrap text-center">{{ $subTitle }}</p>
 </div>

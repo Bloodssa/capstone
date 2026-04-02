@@ -12,7 +12,7 @@
                         <option value="7" @selected($selectedPeriod == '7')>Last 7 Days</option>
                         <option value="30" @selected($selectedPeriod == '30')>Last 30 Days</option>
                         <option value="12" @selected($selectedPeriod == '12')>Last 12 Months</option>
-                    </select>   
+                    </select>
                 </form>
 
                 <a href="{{ route('generate', ['period' => $selectedPeriod]) }}"
@@ -96,7 +96,12 @@
                                 {{ (int) now()->diffInDays($nearExpiryWarranty->expiry_date) }} days left</td>
                         </tr>
                     @empty
-                        <h1>Nothing</h1>
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <x-ui.is-empty title="Customer warranties"
+                                    subTitle="There is no warranty near-expiry at the moment" />
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

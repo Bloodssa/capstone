@@ -38,7 +38,7 @@ Route::middleware(['auth', 'customer', 'verified'])->group(function () {
     Route::get('/home', [CustomerController::class, 'index'])->name('home');
     Route::get('/warranty', [CustomerController::class, 'list'])->name('warranty');
     Route::get('/history', [CustomerController::class, 'history'])->name('history');
-    Route::get('/replacement', [CustomerController::class, 'replacement'])->name('replacement');
+    Route::get('/inquiries', [CustomerController::class, 'inquiries'])->name('inquiries');
     Route::get('/warranty/{id}', [CustomerController::class, 'show'])->name('warranty.show');
 
     Route::post('/send-inquiry', [WarrantyController::class, 'inquire'])->name('inquire-warranty'); 
