@@ -177,7 +177,7 @@
             type: 'bar',
             height: 350
         },
-        colors: ['#22c55e', '#f59e0b', 'oklch(57.7% 0.245 27.325)'],
+        colors: ['oklch(39.3% 0.095 152.535)', 'oklch(83.7% 0.128 66.29)', 'oklch(50.5% 0.213 27.518)'],
         plotOptions: {
             bar: {
                 horizontal: false,

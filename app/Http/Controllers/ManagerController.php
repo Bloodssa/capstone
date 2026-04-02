@@ -7,7 +7,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Warranty;
 use App\Models\WarrantyInquiries;
-use Illuminate\Support\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
 class ManagerController extends Controller
@@ -39,14 +39,13 @@ class ManagerController extends Controller
             $date = now()->startOfMonth()->subMonths($i);
             $key = $date->format('Y-m');
 
-            $months[] = $date->format('M'); // Jan, Feb, etc
+            $months[] = $date->format('M');
 
             $active[] = $data[$key]->active ?? 0;
             $nearExpiry[] = $data[$key]->near_expiry ?? 0;
             $expired[] = $data[$key]->expired ?? 0;
         }
         // dd($months);
-        // dd(WarrantyInquiries::with('user', 'warranty.product')->latest()->limit(5)->get());
 
         $products = DB::table('products as p')
             ->join('warranties as w', 'p.id', '=', 'w.product_id')
@@ -148,6 +147,36 @@ class ManagerController extends Controller
 
     public function reports(Request $request)
     {
+        $data = $this->reportsData($request);
+        return view('manager.reports', $data);
+    }
+
+    public function generateReport(Request $request)
+    {
+        $data = $this->reportsData($request);
+
+        $pdf = Pdf::loadView('manager.warranty-report', $data);
+        return $pdf->download("warranty-report-{$data['periodLabel']}.pdf");
+    }
+
+    public function staffAccounts()
+    {
+        return view('manager.staff-accounts', []);
+    }
+
+    /**
+     * Display a manager profile.
+     */
+    public function profile()
+    {
+        return view('manager.profile');
+    }
+
+    /**
+     * Helper function for pdf and blade reports 
+     */
+    private function reportsData(Request $request)
+    {
         $period = $request->get('period', '12');
         $interval = match ($period) {
             '7' => now()->subDays(6)->startOfDay(),
@@ -222,30 +251,23 @@ class ManagerController extends Controller
             ]
         ];
 
-        return view('manager.reports', [
+        $periodLabel = match ($period) {
+            '7'  => 'last-7-days',
+            '30' => 'last-30-days',
+            '12' => 'last-12-months',
+            default => 'last-12-months',
+        };
+
+        return [
             'activeWarranty' => Warranty::where('status', '!=', 'expired')->where('expiry_date', '>=', $interval)->count(),
             'warrantyClaimCount' => WarrantyInquiries::where('created_at', '>=', $interval)->count(),
             'resolvedInquiry' => WarrantyInquiries::whereIn('status', ['resolved', 'replaced'])->where('created_at', '>=', $interval)->count(),
             'chartsData' => $datas,
             'nearExpiryWarranties' => Warranty::with('user', 'product')->where('status', 'near-expiry')->orderBy('created_at', 'desc')->get(),
-            'selectedPeriod' => $period
-        ]);
+            'selectedPeriod' => $period,
+            'periodLabel' => $periodLabel
+        ];
     }
-
-    public function staffAccounts()
-    {
-        return view('manager.staff-accounts', []);
-    }
-
-    /**
-     * Display a manager profile.
-     */
-    public function profile()
-    {
-        return view('manager.profile');
-    }
-
-
 
     /**
      * Show the form for creating a new resource.

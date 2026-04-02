@@ -73,6 +73,8 @@ Route::middleware(['auth', 'manager'])->group(function () {
     Route::put('/products', [ProductController::class, 'update'])->name('update-product');
     Route::delete('/products', [ProductController::class, 'destroy'])->name('delete-product');
 
+    // Generate PDF Report
+    Route::get('/generate-report', [ManagerController::class, 'generateReport'])->name('generate');
 });
 
 /**
@@ -90,7 +92,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
-
 
 
 // Route to view the email that will be sent to the user

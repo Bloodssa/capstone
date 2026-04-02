@@ -15,7 +15,7 @@
                     </select>   
                 </form>
 
-                <a href="#"
+                <a href="{{ route('generate', ['period' => $selectedPeriod]) }}"
                     class="inline-flex items-center bg-neutral-900 text-white text-sm font-semibold px-4 py-2 rounded-md hover:bg-neutral-800 transition">
                     Download PDF
                 </a>
