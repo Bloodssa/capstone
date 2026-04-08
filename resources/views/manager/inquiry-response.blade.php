@@ -35,7 +35,9 @@
             ],
         ];
     @endphp
-
+    @if (session('status'))
+        <x-ui.toast type="success" message="{{ session('status') }}" />
+    @endif
     <div class="lg:py-6 md:px-6 lg:px-10 max-w-7xl mx-auto w-full space-y-6">
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -97,35 +99,92 @@
                 <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-white">
                     @foreach ($messages as $msg)
                         @php
-                            $isCustomer = $msg->user->id === $inquiry->user->id;
+                            $isCustomer = $msg->type === 'message' && $msg->user?->id === auth()->id();
                         @endphp
-                        <div class="flex {{ $isCustomer ? 'justify-start' : 'justify-end' }}">
-                            <div class="flex items-end gap-2 {{ $isCustomer ? '' : 'flex-row-reverse' }}">
-                                @if ($isCustomer)
-                                    <div class="shrink-0">
-                                        <x-icons.avatar :name="$msg->user->name" size="sm" />
-                                    </div>
-                                @endif
-                                <div class="flex flex-col {{ $isCustomer ? 'items-start' : 'items-end' }}">
-                                    <div
-                                        class="p-2 rounded-md text-sm max-w-md wrap-break-word
-                                        {{ $isCustomer ? 'bg-gray-100 text-neutral-900' : 'bg-neutral-900 text-white' }}">
+
+                        @if ($msg->type === 'updates')
+                            <div class="relative flex items-center justify-center my-8">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full border-t border-gray-300"></div>
+                                </div>
+                                <div class="relative bg-white px-4 flex flex-col items-center text-center">
+                                    <span class="text-sm font-semibold text-neutral-500">
                                         {{ $msg->message }}
-                                    </div>
-                                    @if ($msg->attachments)
-                                        <div
-                                            class="flex flex-wrap max-w-100 gap-1 mt-2 {{ $isCustomer ? 'justify-start' : 'justify-end' }}">
-                                            @foreach ($msg->attachments as $path)
-                                                <a href="{{ asset('storage/' . $path) }}" target="_blank">
-                                                    <img src="{{ asset('storage/' . $path) }}"
-                                                        class="h-24 w-24 object-cover rounded-md border border-gray-200">
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    @endif
+                                    </span>
+                                    <span class="text-xs text-neutral-400 mt-0.5">
+                                        {{ $msg->created_at->format('M d, g:i A') }}
+                                    </span>
                                 </div>
                             </div>
-                        </div>
+                        @elseif ($msg->type === 'solution')
+                            <div class="my-10 flex justify-center px-4">
+                                <div class="max-w-md w-full border border-gray-300 rounded-md p-6 bg-white">
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <div class="p-2 bg-neutral-900 rounded-md text-white">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-neutral-900">Inquiry
+                                                {{ Str::title($msg->status) }}</h3>
+                                            <p class="text-xs text-neutral-500">
+                                                {{ $msg->created_at->format('F j, Y') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-neutral-900 font-medium">
+                                        "{{ $msg->message }}"
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-gray-300 flex justify-between items-center">
+                                        <span
+                                            class="text-sm font-semibold text-neutral-500">{{ $msg->user->name }}</span>
+                                        <x-icons.badge type="{{ $msg->status }}" size="sm">
+                                            {{ Str::title($msg->status) }}
+                                        </x-icons.badge>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="flex {{ $isCustomer ? 'justify-end' : 'justify-start' }}">
+                                <div
+                                    class="flex items-end gap-2 {{ $isCustomer ? 'flex-row-reverse' : 'items-start' }}">
+                                    @if (!$isCustomer)
+                                        <div class="shrink-0">
+                                            <x-icons.avatar :name="$msg->user->name" size="sm" />
+                                        </div>
+                                    @endif
+
+                                    <div class="flex flex-col {{ $isCustomer ? 'items-end' : 'items-start' }}">
+                                        <div
+                                            class="p-2 rounded-md text-sm max-w-md wrap-break-word {{ $isCustomer ? 'bg-neutral-900 text-white' : 'bg-gray-100 text-neutral-900' }}">
+                                            {{ $msg->message }}
+                                        </div>
+
+                                        @isset($msg->attachments)
+                                            <div
+                                                class="flex flex-wrap max-w-100 gap-1 mt-2 {{ $isCustomer ? 'justify-end' : 'justify-start' }}">
+                                                @foreach ($msg->attachments as $path)
+                                                    <a href="{{ asset('storage/' . $path) }}" target="_blank">
+                                                        <img src="{{ asset('storage/' . $path) }}"
+                                                            class="h-24 w-24 object-cover rounded-md border border-gray-200 hover:opacity-80 transition">
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @endisset
+
+                                        <span class="text-xs text-gray-500 mt-1">
+                                            @if ($msg->created_at->greaterThan(now()->subDay()))
+                                                {{ $msg->created_at->diffForHumans() }}
+                                            @else
+                                                {{ $msg->created_at->format('F j, Y, g:i a') }}
+                                            @endif
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
                 <x-ui.reply :action="route('inquiry-response')" buttonText="Response" placeholder="Response to the inquiry of the user">
@@ -142,10 +201,10 @@
                             Update Progress
                         </h1>
                     </div>
-                    <form action="/warranty-status/{{ $inquiry->id }}" method="POST" class="space-y-4 p-5">
+                    <form action="{{ route('inquiry-status', $inquiry->id) }}" method="POST" class="space-y-4 p-5">
                         @csrf
                         @method('PATCH')
-                        <select name="status"
+                        <select name="status" data-current="{{ $inquiry->status }}"
                             class="w-full border-gray-300 rounded-md text-sm focus:ring-neutral-900 focus:border-neutral-900">
                             <option value="pending" @selected($inquiry->status == 'pending')>Pending</option>
                             <option value="in-progress" @selected($inquiry->status == 'in-progress')>In-Progress</option>
@@ -193,7 +252,7 @@
                                 <span class="text-sm text-neutral-500">Status</span>
                                 <div class="mt-1">
                                     <x-icons.badge type="{{ $inquiry->warranty->status }}" size="sm">
-                                        {{ Str::title($inquiry->warranty->status) }}
+                                        {{ $inquiry->warranty->status->label() }}
                                     </x-icons.badge>
                                 </div>
                             </div>
@@ -218,7 +277,7 @@
                                 <div class="flex space-x-1">
                                     <x-icons.circle-badge type="{{ $inquiry->warranty->status }}" size="md" />
                                     <p
-                                        class="text-md {{ $inquiry->warranty->expiry_date->isPast() ? 'text-red-600' : 'text-neutral-500' }}">
+                                        class="text-md {{ $inquiry->warranty->expiry_date->isPast() ? 'text-red-800' : 'text-neutral-500' }}">
                                         @if ($inquiry->warranty->expiry_date->isPast())
                                             Expired
                                         @else
@@ -242,4 +301,6 @@
             </div>
         </div>
     </div>
+
+    @vite(['resources/js/inquiry.js'])
 </x-admin-layout>

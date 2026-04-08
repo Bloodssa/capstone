@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\WarrantyStatusType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +22,8 @@ class Warranty extends Model
     protected $casts = [
         'purchase_date' => 'date',
         'expiry_date' => 'date',
+        'status' => WarrantyStatusType::class,
+        'is_claimed' => 'boolean'
     ];
 
     public function user(): BelongsTo

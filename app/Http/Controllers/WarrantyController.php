@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use App\Models\WarrantyInquiries;
 use App\Models\InquiryResponse;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 
 class WarrantyController extends Controller
 {
@@ -34,12 +36,69 @@ class WarrantyController extends Controller
 
     public function inquire(Request $request)
     {
-        $data = $request->validate([
-            'warranty_id' => ['required', 'numeric', 'exists:warranties,id'],
-            'message' => ['required', 'string'],
-            'attachments.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120']
-        ]);
+        $errors = new MessageBag(); // for modification of the error message
 
+        if ($request->hasFile('attachments')) {
+            $files = $request->file('attachments');
+
+            if (count($files) > 10) { // limit for 10 files
+                return back()->withErrors([
+                    'attachments' => 'You are only allowed to upload a maximum of 10 images.'
+                ])->withInput();
+            }
+
+            foreach ($files as $index => $file) {
+                if (!$file->isValid()) {
+                    $filename = $file->getClientOriginalName();
+                    $errors->add("attachments.$index", "$filename failed to upload.");
+                }
+            }
+        }
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'warranty_id' => ['required', 'numeric', 'exists:warranties,id'],
+                'message' => ['required', 'string'],
+                'attachments' => ['nullable', 'array', 'max:10'],
+                'attachments.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            ],
+            [
+                'attachments.max' => 'You are only allowed to upload a maximum of 10 images.',
+                'attachments.*.image' => 'Each file must be an image.',
+                'attachments.*.mimes' => 'Only jpeg, png, jpg, webp formats are allowed.',
+                'attachments.*.max' => 'Each image must not exceed 10MB.',
+            ]
+        );
+        if ($validator->fails() || $errors->isNotEmpty()) {
+            $validationErrors = $validator->errors();
+
+            $allErrors = $validationErrors->merge($errors);
+
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $index => $file) {
+                    $key = "attachments.$index";
+
+                    if ($allErrors->has($key)) {
+                        $filename = $file->getClientOriginalName();
+
+                        $messages = $allErrors->get($key);
+                        $allErrors->forget($key);
+
+                        foreach ($messages as $message) {
+                            if (!str_contains($message, $filename)) {
+                                $allErrors->add($key, "$filename: $message");
+                            } else {
+                                $allErrors->add($key, $message);
+                            }
+                        }
+                    }
+                }
+            }
+            return back()->withErrors($allErrors)->withInput();
+        }
+
+        $data = $validator->validated();
         $data['user_id'] = Auth::user()->id;
         $data['status'] = 'open';
 
@@ -83,6 +142,9 @@ class WarrantyController extends Controller
         $data['attachments'] = $attachmentPaths;
 
         $inquiries = InquiryResponse::create($data);
+
+        // when the tech or customer reply to the inquiry update the updated_at in the WarrantyInquiry
+        $inquiries->warrantyInquiries->touch();
 
         return back()->with('success', 'Inquiry Response Submitted');
     }
@@ -176,18 +238,29 @@ class WarrantyController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
-    {   
+    {
         $data = $request->validate([
-            'status' => ['required', 'string']
+            'status' => ['required', 'string'],
+            'resolved_message' => ['nullable', 'string']
         ]);
 
+        // dd($request);
         $inquiry = WarrantyInquiries::findOrFail($id);
+        $previousStatus = $inquiry->status;
 
         $inquiry->update([
             'status' => $data['status']
         ]);
 
-        return back();
+        $resolvedMessage = $data['resolved_message'] ?? null;
+
+        $inquiry->responses()->create([
+            'user_id' => Auth::user()->id,
+            'message' => $data['resolved_message'] ?? "Status changed from " . ucfirst($previousStatus) . " to " . ucfirst($data['status']),
+            'type' => $resolvedMessage ? 'solution' : 'updates'
+        ]);
+
+        return back()->with('success', 'Inquiry status updated successfully!');
     }
 
     /**

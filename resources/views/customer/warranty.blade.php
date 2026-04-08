@@ -104,7 +104,7 @@
                             <div class="inline-flex w-full justify-end">
                                 <x-icons.badge type="{{ $warranty->status }}" size="md"
                                     class="w-32 justify-center">
-                                    {{ Str::title($warranty->status) }}
+                                    {{ Str::title($warranty->status->label()) }}
                                 </x-icons.badge>
                             </div>
                         </td>

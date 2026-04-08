@@ -73,7 +73,8 @@ class CustomerController extends Controller
                 'type' => 'success',
                 'date' => $registered->created_at,
                 'title' => "Registered {$registered->product->name}",
-                'description' => "Serial: {$registered->serial_number}"
+                'description' => "Serial: {$registered->serial_number}",
+                'url' => route('warranty.show', $registered->id)
             ]);
 
         $inquiries = WarrantyInquiries::with('warranty.product')
@@ -84,6 +85,7 @@ class CustomerController extends Controller
                 'date' => $inquiry->created_at,
                 'title' => "Opened an inquiry for {$inquiry->warranty->product->name}",
                 'description' => Str::limit($inquiry->message, 60),
+                'url' => route('inquiry.show', $inquiry->id)
             ]);
 
         $statusUpdates = WarrantyInquiries::with('warranty.product')
@@ -103,6 +105,7 @@ class CustomerController extends Controller
                     'date' => $update->updated_at,
                     'title' => "Inquiry {$update->status}",
                     'description' => "Your inquiry for {$update->warranty->product->name} was {$update->status}.",
+                    'url' => route('inquiry.show', $update->id)
                 ];
             });
 
@@ -115,6 +118,7 @@ class CustomerController extends Controller
                 'date' => $w->expiry_date,
                 'title' => "{$w->product->name} warranty expired",
                 'description' => "Expired on " . $w->expiry_date->format('M d, Y'),
+                'url' => route('warranty.show', $w->id)
             ]);
 
         // refactor with paginator
@@ -135,7 +139,26 @@ class CustomerController extends Controller
      */
     public function inquiries()
     {
-        return view('customer.inquiries');
+        $inquiries = WarrantyInquiries::with('warranty.product', 'warranty')
+            ->where('user_id', Auth::user()->id)
+            ->paginate(10);
+
+        return view('customer.inquiries', [
+            'inquiries' => $inquiries
+        ]);
+    }
+
+    public function showInquiry(string $id)
+    {
+        $inquiry = WarrantyInquiries::with('warranty.product', 'warranty', 'warranty.user')
+            ->where('user_id', Auth::user()->id)
+            ->findOrFail($id);
+
+        // dd($inquiry);
+
+        return view('customer.show-inquiry', [
+            'inquiry' => $inquiry
+        ]);
     }
 
     /**
@@ -144,13 +167,25 @@ class CustomerController extends Controller
     public function show(string $id)
     {
         // get the warranty info for the id
-        $warranty = Warranty::with('product', 'inquiries.user', 'inquiries.responses.user')
+        $warranty = Warranty::with('product', 'inquiries', 'inquiries.user', 'inquiries.responses.user')
             ->findOrFail($id);
 
         // dd($warranty);
 
+        // check if this warranty does not have a inquiries for the ux
+        $containsInquiries = $warranty->inquiries->isNotEmpty();
+
+        $history = WarrantyInquiries::where('warranty_id', $warranty->id)->get();
+
+        // use the temporary helper for message
+        $messages = $this->inquiryMessages($warranty->inquiries);
+        // dd($messages);
+
         return view('customer.show', [
-            'warranty' => $warranty
+            'warranty' => $warranty,
+            'history' => $history,
+            'messages' => $messages,
+            'containsInquiries' => $containsInquiries
         ]);
     }
 

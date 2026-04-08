@@ -44,6 +44,9 @@
                             <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">
                                 Product / Issue
                             </th>
+                            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">
+                                Serial Number
+                            </th>
                             <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Status
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">
@@ -76,9 +79,11 @@
                                             "{{ Str::limit($warrantyInquiry->message, 15, '...') }}"</p>
                                     </div>
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                                    {{ $warrantyInquiry->warranty->serial_number }}
+                                </td>
                                 <td class="whitespace-nowrap text-sm text-neutral-900">
-                                    <x-icons.badge type="{{ $warrantyInquiry->status }}" size="md"
-                                        class="w-32 justify-center">
+                                    <x-icons.badge type="{{ $warrantyInquiry->status }}" size="md">
                                         {{ Str::title($warrantyInquiry->status) }}
                                     </x-icons.badge>
                                 </td>
@@ -99,7 +104,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center">
+                                <td colspan="6" class="px-6 py-12 text-center">
                                     <x-ui.is-empty title="Warranty Inquiries"
                                         subTitle="There is no warranty inquiries at the moment" />
                                 </td>

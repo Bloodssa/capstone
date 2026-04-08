@@ -39,6 +39,8 @@
                             <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Serial
                                 Number
                             </th>
+                            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Status
+                            </th>
                             <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">
                                 Purchase Date
                             </th>
@@ -77,6 +79,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     {{ $warranty->serial_number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                                    <x-icons.badge type="{{ $warranty->status }}" size="sm">
+                                    {{ $warranty->status->label() }}
+                                </x-icons.badge></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     {{ $warranty->purchase_date->format('M d, Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     {{ (int) now()->diffInDays($warranty->expiry_date) }} Days Left</td>
@@ -95,7 +101,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center">
+                                <td colspan="7" class="px-6 py-12 text-center">
                                     <x-ui.is-empty title="No active warranties"
                                         subTitle="Register a customers product warranties" />
                                     <a href="{{ route('register-warranty') }}"

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(WarrantyInquiries::class)->constrained()->cascadeOnDelete();
             $table->text('message');
+            $table->enum('type', ['message', 'updates', 'solution'])->default('message');
             $table->json('attachments')->nullable();
             $table->timestamps();
         });

@@ -16,7 +16,7 @@
                     <x-ui.nav-link :href="route('warranty')" :active="request()->routeIs('warranty', 'warranty.show')">
                         {{ __('My Warranty') }}
                     </x-ui.nav-link>
-                    <x-ui.nav-link :href="route('inquiries')" :active="request()->routeIs('inquiries')">
+                    <x-ui.nav-link :href="route('inquiries')" :active="request()->routeIs('inquiries', 'inquiry.show')">
                         {{ __('Inquiries') }}
                     </x-ui.nav-link>
                     <x-ui.nav-link :href="route('history')" :active="request()->routeIs('history')">

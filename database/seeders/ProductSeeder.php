@@ -60,7 +60,7 @@ class ProductSeeder extends Seeder
                 'category' => 'Laptop',
                 'brand' => 'ROG',
                 'warranty_duration' => 48,
-                'product_image_url' => 'products/oMdaxY9CFYJq21fjnb3ZSapjDKYPKb7SNQ6gLryv.jpg',
+                'product_image_url' => 'products/8tm4FYpJRKM076uRsmfU6rSiLCUllWQEhGYtvXDg.jpg',
                 'service_center_name' => 'ROG Service Center Manila',
                 'service_center_address' => 'Taft Ave, Manila, Metro Manila',
             ],

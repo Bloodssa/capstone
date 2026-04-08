@@ -10,12 +10,15 @@ class InquiryResponse extends Model
         'user_id',
         'warranty_inquiries_id',
         'message',
+        'type',
         'attachments'
     ];
 
     protected $casts = [
         'attachments' => 'array'
     ];
+
+    protected $touches = ['warrantyInquiries'];
 
     public function user()
     {

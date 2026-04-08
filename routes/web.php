@@ -39,6 +39,7 @@ Route::middleware(['auth', 'customer', 'verified'])->group(function () {
     Route::get('/warranty', [CustomerController::class, 'list'])->name('warranty');
     Route::get('/history', [CustomerController::class, 'history'])->name('history');
     Route::get('/inquiries', [CustomerController::class, 'inquiries'])->name('inquiries');
+    Route::get('/inquiries/{id}', [CustomerController::class, 'showInquiry'])->name('inquiry.show');
     Route::get('/warranty/{id}', [CustomerController::class, 'show'])->name('warranty.show');
 
     Route::post('/send-inquiry', [WarrantyController::class, 'inquire'])->name('inquire-warranty'); 
@@ -65,7 +66,7 @@ Route::middleware(['auth', 'manager'])->group(function () {
     // Warranty
     Route::post('/register-warranty', [WarrantyController::class, 'store'])->name('register-warranty-details');
     Route::post('/response', [WarrantyController::class, 'response'])->name('response');
-    Route::patch('/warranty-status/{id}', [WarrantyController::class, 'update']);
+    Route::patch('/warranty-status/{id}', [WarrantyController::class, 'update'])->name('inquiry-status');
     
     // Product
     Route::get('/products', [ProductController::class, 'index'])->name('add-product');

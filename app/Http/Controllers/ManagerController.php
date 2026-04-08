@@ -99,27 +99,13 @@ class ManagerController extends Controller
 
     public function inquiryResponse(int $id)
     {
-        $inquiry = WarrantyInquiries::with('user', 'responses.user', 'warranty.product')->find($id);
+        $warranty = Warranty::with('product', 'inquiries', 'inquiries.user', 'inquiries.responses.user')
+            ->findOrFail($id);
         // dd($inquiry);
 
         // collect and combine inquiry and messages
-        $messages = collect([
-            (object)[
-                'message' => $inquiry->message,
-                'user' => $inquiry->user,
-                'created_at' => $inquiry->created_at,
-                'attachments' => $inquiry->attachments
-            ]
-        ])->merge(
-            $inquiry->responses->map(function ($response) {
-                return (object)[
-                    'message' => $response->message,
-                    'user' => $response->user,
-                    'created_at' => $response->created_at,
-                    'attachments' => $response->attachments
-                ];
-            })
-        )->sortBy('created_date')->values();
+        $inquiry = $warranty->inquiries->first();
+        $messages = $this->inquiryMessages(collect([$inquiry]));
 
         // dd($messages);
 

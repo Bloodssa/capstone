@@ -24,7 +24,7 @@
                 <div class="block">
                     <h1 class="text-neutral-500 text-sm">Warranty Status</h1>
                     <x-icons.badge type="{{ $warranty->status }}" size="sm">
-                        {{ Str::title($warranty->status) }}
+                        {{ $warranty->status->label() }}
                     </x-icons.badge>
                 </div>
 

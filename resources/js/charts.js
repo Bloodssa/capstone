@@ -151,7 +151,7 @@ class Charts {
         const nearExpiry = el.dataset.nearExpiry ? JSON.parse(el.dataset.nearExpiry) : [];
         const expired = el.dataset.expired ? JSON.parse(el.dataset.expired) : [];
         const categories = el.dataset.categories ? JSON.parse(el.dataset.categories) : [];
-        console.log(active);
+
         const options = {
             series: [{
                 name: 'Active',
