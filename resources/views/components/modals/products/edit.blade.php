@@ -6,10 +6,9 @@
         <p class="text-sm text-gray-500">Modify the product details, pricing, and availability.</p>
     </div>
 
-    <form method="POST" action="{{ route('update-product') }}" class="space-y-6" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('update-product', $product->id) }}" class="space-y-6" enctype="multipart/form-data">
         @csrf
         @method('PUT')
-        <input type="hidden" name="product_id" value="{{ $product->id }}" />
 
         <div class="bg-white border border-gray-300 rounded-md overflow-hidden">
             <div class="px-4 sm:px-6 py-4 border-b border-gray-300">
@@ -49,7 +48,7 @@
         </div>
 
         <div class="mb-6" x-data="{
-            imageUrl: '{{ $product->image_url }}',
+            imageUrl: '{{ asset('storage/' . $product->product_image_url) }}',
             imageUpdate(event) {
                 const file = event.target.files[0];
                 if (!file) return;

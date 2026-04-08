@@ -2,7 +2,7 @@
     <div class="lg:py-6 md:px-6 lg:px-10 max-w-6xl mx-auto w-full space-y-6">
 
         <div class="space-y-2">
-            <h1 class="text-neutral-900 text-2xl font-bold">{{ Str::title(Auth()->user()->role) }} Dashboard</h1>
+            <h1 class="text-neutral-900 text-2xl font-bold">{{ Str::title(Auth()->user()->role->label()) }} Dashboard</h1>
             <p class="text-neutral-500 text-sm">Monitor warranties, manage customers, and respond to repair inquiries in
                 one place</p>
         </div>
@@ -109,7 +109,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     {{ $latestInquiry->warranty->product->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-neutral-900">
-                                    {{ Str::title($latestInquiry->status) }}</td>
+                                    {{ $latestInquiry->status->label() }}</td>
                             </tr>
                         @empty
                             <tr>

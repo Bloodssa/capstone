@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\InquiryStatusType;
 use Illuminate\Database\Eloquent\Model;
 
 class WarrantyInquiries extends Model
@@ -15,6 +16,7 @@ class WarrantyInquiries extends Model
     ];
 
     protected $casts = [
+        'status' => InquiryStatusType::class,
         'attachments' => 'array'
     ];
 

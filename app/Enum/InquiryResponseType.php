@@ -2,9 +2,19 @@
 
 namespace App\Enum;
 
-enum InquiryStatusType:string
+enum InquiryResponseType: string
 {
     case MESSAGE = 'message';
     case UPDATES = 'updates';
     case SOLUTION = 'solution';
+
+    public function label(): string
+    {
+        return $this->value;
+    }
+
+    public function getTypeAttribute($value): InquiryResponseType
+    {
+        return InquiryResponseType::from($value);
+    }
 }

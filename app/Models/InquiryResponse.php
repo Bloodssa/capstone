@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\InquiryResponseType;
 use Illuminate\Database\Eloquent\Model;
 
 class InquiryResponse extends Model

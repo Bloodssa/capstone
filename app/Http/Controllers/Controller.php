@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Warranty;
+use App\Enum\WarrantyStatusType;
 
 abstract class Controller
 {
@@ -26,7 +27,7 @@ abstract class Controller
             $warrantyClaim->update([
                 'user_id' => $user->id,
                 'is_claimed' => true,
-                'status' => 'active'
+                'status' => WarrantyStatusType::ACTIVE->value
             ]);
         }
 

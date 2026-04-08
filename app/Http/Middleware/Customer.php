@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enum\UserRole;
 
 class Customer
 {
@@ -17,12 +18,11 @@ class Customer
     public function handle(Request $request, Closure $next): Response
     {
         // redirect to login if its a guest
-        if(!Auth::check()) {
+        if (!Auth::check()) {
             return redirect('/login');
         }
 
-        // if its not a customer direct to staff or admin
-        if(Auth::user()->role !== 'customer') {
+        if (Auth::user()->role !== UserRole::CUSTOMER) {
             return redirect('/dashboard');
         }
 

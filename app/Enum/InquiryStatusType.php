@@ -13,6 +13,6 @@ enum InquiryStatusType:string
 
     public function label(): string 
     {
-        return str(ucfirst($this->value));
+        return ucfirst($this->value);
     }
 }

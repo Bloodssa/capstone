@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\InquiryResponseType;
+use App\Enum\InquiryStatusType;
+use App\Enum\WarrantyStatusType;
+use App\Http\Requests\Warranty\InquiryWarrantyRequest;
+use App\Http\Requests\Warranty\StoreWarrantyRequest;
+use App\Http\Requests\Warranty\UpdateInquiryStatus;
 use Illuminate\Http\Request;
 use App\Mail\WarrantyInvitation;
 use Illuminate\Support\Facades\Mail;
@@ -13,94 +19,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use App\Models\WarrantyInquiries;
 use App\Models\InquiryResponse;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\MessageBag;
 
 class WarrantyController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function inquire(InquiryWarrantyRequest $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    public function inquire(Request $request)
-    {
-        $errors = new MessageBag(); // for modification of the error message
-
-        if ($request->hasFile('attachments')) {
-            $files = $request->file('attachments');
-
-            if (count($files) > 10) { // limit for 10 files
-                return back()->withErrors([
-                    'attachments' => 'You are only allowed to upload a maximum of 10 images.'
-                ])->withInput();
-            }
-
-            foreach ($files as $index => $file) {
-                if (!$file->isValid()) {
-                    $filename = $file->getClientOriginalName();
-                    $errors->add("attachments.$index", "$filename failed to upload.");
-                }
-            }
-        }
-
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'warranty_id' => ['required', 'numeric', 'exists:warranties,id'],
-                'message' => ['required', 'string'],
-                'attachments' => ['nullable', 'array', 'max:10'],
-                'attachments.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
-            ],
-            [
-                'attachments.max' => 'You are only allowed to upload a maximum of 10 images.',
-                'attachments.*.image' => 'Each file must be an image.',
-                'attachments.*.mimes' => 'Only jpeg, png, jpg, webp formats are allowed.',
-                'attachments.*.max' => 'Each image must not exceed 10MB.',
-            ]
-        );
-        if ($validator->fails() || $errors->isNotEmpty()) {
-            $validationErrors = $validator->errors();
-
-            $allErrors = $validationErrors->merge($errors);
-
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $index => $file) {
-                    $key = "attachments.$index";
-
-                    if ($allErrors->has($key)) {
-                        $filename = $file->getClientOriginalName();
-
-                        $messages = $allErrors->get($key);
-                        $allErrors->forget($key);
-
-                        foreach ($messages as $message) {
-                            if (!str_contains($message, $filename)) {
-                                $allErrors->add($key, "$filename: $message");
-                            } else {
-                                $allErrors->add($key, $message);
-                            }
-                        }
-                    }
-                }
-            }
-            return back()->withErrors($allErrors)->withInput();
-        }
-
-        $data = $validator->validated();
-        $data['user_id'] = Auth::user()->id;
-        $data['status'] = 'open';
+        $data = $request->validated();
 
         // handle the image path and it will be stored as a json
         $attachmentPaths = [];
@@ -112,7 +37,13 @@ class WarrantyController extends Controller
 
         $data['attachments'] = $attachmentPaths;
 
-        $inquiries = WarrantyInquiries::create($data);
+        $inquiries = WarrantyInquiries::create([
+            'warranty_id' => $data['warranty_id'],
+            'message' => $data['message'],
+            'user_id' => Auth::id(),
+            'status' => InquiryStatusType::OPEN,
+            'attachments' => $attachmentPaths
+        ]);
 
         return back()->with('success', 'Inquiry Submitted');
     }
@@ -152,14 +83,9 @@ class WarrantyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreWarrantyRequest $request)
     {
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'product_id' => ['required', 'exists:products,id'],
-            'serial_number' => ['required', 'string', 'unique:warranties,serial_number'],
-            'purchase_date' => ['required', 'date']
-        ]);
+        $data = $request->validated();
 
         $user = User::where('email', $data['email'])->first('id');
 
@@ -175,8 +101,9 @@ class WarrantyController extends Controller
             'serial_number' => $data['serial_number'],
             'purchase_date' => $purchaseDate,
             'expiry_date' => $expiryDate,
-            'status' => $user ? 'active' : 'pending',
-            'is_claimed' => $user ? true : false
+            'user_id' => $user?->id,
+            'status' => $user ? WarrantyStatusType::ACTIVE : WarrantyStatusType::PENDING,
+            'is_claimed' => (bool)$user
         ];
 
         if ($user) {
@@ -237,12 +164,9 @@ class WarrantyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateInquiryStatus $request, string $id)
     {
-        $data = $request->validate([
-            'status' => ['required', 'string'],
-            'resolved_message' => ['nullable', 'string']
-        ]);
+        $data = $request->validated();
 
         // dd($request);
         $inquiry = WarrantyInquiries::findOrFail($id);
@@ -252,12 +176,14 @@ class WarrantyController extends Controller
             'status' => $data['status']
         ]);
 
-        $resolvedMessage = $data['resolved_message'] ?? null;
+        $resolvedMessage = $request->input('resolved_message');
+        $message = $resolvedMessage ?? "Status changed from " . $previousStatus->label() . " to " . InquiryStatusType::from($data['status'])->label();
+        $type = $resolvedMessage ? InquiryResponseType::SOLUTION : InquiryResponseType::UPDATES;
 
         $inquiry->responses()->create([
             'user_id' => Auth::user()->id,
-            'message' => $data['resolved_message'] ?? "Status changed from " . ucfirst($previousStatus) . " to " . ucfirst($data['status']),
-            'type' => $resolvedMessage ? 'solution' : 'updates'
+            'message' => $message,
+            'type' => $type
         ]);
 
         return back()->with('success', 'Inquiry status updated successfully!');

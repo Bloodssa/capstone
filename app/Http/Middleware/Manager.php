@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enum\UserRole;
 
 class Manager
 {
@@ -16,11 +17,13 @@ class Manager
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::check()) {
+        if (!Auth::check()) {
             return redirect('/login');
         }
 
-        if(!in_array(Auth::user()->role, ['staff', 'admin'])) {
+        $allowedRoles = [UserRole::STAFF->value, UserRole::TECHNICIAN->value, UserRole::ADMIN->value];
+
+        if (!in_array(Auth::user()->role->value, $allowedRoles)) {
             return redirect('/home');
         }
 

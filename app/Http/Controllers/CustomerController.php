@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Warranty;
 use App\Models\WarrantyInquiries;
 use Illuminate\Support\Str;
+use App\Enum\WarrantyStatusType;
 
 class CustomerController extends Controller
 {
@@ -15,23 +16,24 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $activeWarranties = Warranty::whereUserId(Auth::user()->id)
-            ->where('status', '!=', 'expired')
+        $userId = Auth::user()->id;
+        $activeWarranties = Warranty::whereUserId($userId)
+            ->where('status', '!=', WarrantyStatusType::EXPIRED->value)
             ->count();
 
-        $expWarCount = Warranty::whereUserId(Auth::user()->id)
-            ->where('status', 'near-expiry')
+        $expWarCount = Warranty::whereUserId($userId)
+            ->where('status', WarrantyStatusType::NEAR_EXPIRY->value)
             ->count();
 
-        $recentlyPurchased = Warranty::whereUserId(Auth::user()->id)
+        $recentlyPurchased = Warranty::whereUserId($userId)
             ->with('product')
             ->latest('purchase_date')
             ->take(3)
             ->get();
 
-        $expiringWarranties = $expiringWarranties = Warranty::whereUserId(Auth::user()->id)
+        $expiringWarranties = Warranty::whereUserId($userId)
             ->with('product')
-            ->whereIn('status', ['expired', 'near-expiry'])
+            ->whereIn('status', [WarrantyStatusType::EXPIRED->value, WarrantyStatusType::NEAR_EXPIRY->value])
             ->latest('expiry_date')
             ->limit(3)
             ->get();
@@ -50,7 +52,7 @@ class CustomerController extends Controller
     public function list()
     {
         $warranties = Warranty::with('product')
-            ->where('user_id', Auth::user()->id)
+            ->whereUserId(Auth::user()->id)
             ->get();
 
         return view('customer.warranty', [
@@ -67,7 +69,7 @@ class CustomerController extends Controller
 
         // registered warranty history map it with the type, date, title, and description
         $registeredWarranty = Warranty::with('product')
-            ->where('user_id', $userId)
+            ->whereUserId($userId)
             ->get()
             ->map(fn($registered) => (object)[
                 'type' => 'success',
@@ -78,7 +80,7 @@ class CustomerController extends Controller
             ]);
 
         $inquiries = WarrantyInquiries::with('warranty.product')
-            ->where('user_id', $userId)
+            ->whereUserId($userId)
             ->get()
             ->map(fn($inquiry) => (object)[
                 'type' => 'new',
@@ -89,28 +91,28 @@ class CustomerController extends Controller
             ]);
 
         $statusUpdates = WarrantyInquiries::with('warranty.product')
-            ->where('user_id', $userId)
+            ->whereUserId($userId)
             ->whereIn('status', ['resolved', 'replaced', 'closed'])
             ->get()
             ->map(function ($update) {
 
-                $type = match ($update->status) {
+                $type = match ($update->status->value) {
                     'resolved' => 'success',
-                    'replaced' => 'success',
+                    'replaced' => 'success',    
                     'closed' => 'default',
                 };
 
                 return (object)[
                     'type' => $type,
                     'date' => $update->updated_at,
-                    'title' => "Inquiry {$update->status}",
-                    'description' => "Your inquiry for {$update->warranty->product->name} was {$update->status}.",
+                    'title' => "Inquiry {$update->status->value}",
+                    'description' => "Your inquiry for {$update->warranty->product->name} was {$update->status->value}.",
                     'url' => route('inquiry.show', $update->id)
                 ];
             });
 
         $expiredWarranty = Warranty::with('product')
-            ->where('user_id', $userId)
+            ->whereUserId($userId)
             ->whereDate('expiry_date', '<=', now())
             ->get()
             ->map(fn($w) => (object)[
@@ -128,7 +130,7 @@ class CustomerController extends Controller
             ->concat($inquiries)
             ->concat($statusUpdates)
             ->concat($expiredWarranty)
-            ->sortBy('date');
+            ->sortByDesc('date');
 
         return view('customer.history', [
             'history' => $history
@@ -139,8 +141,9 @@ class CustomerController extends Controller
      */
     public function inquiries()
     {
-        $inquiries = WarrantyInquiries::with('warranty.product', 'warranty')
-            ->where('user_id', Auth::user()->id)
+        $inquiries = WarrantyInquiries::with(['warranty.product', 'warranty'])
+            ->whereUserId(Auth::user()->id)
+            ->latest()
             ->paginate(10);
 
         return view('customer.inquiries', [
@@ -150,9 +153,10 @@ class CustomerController extends Controller
 
     public function showInquiry(string $id)
     {
-        $inquiry = WarrantyInquiries::with('warranty.product', 'warranty', 'warranty.user')
-            ->where('user_id', Auth::user()->id)
-            ->findOrFail($id);
+        $inquiry = WarrantyInquiries::with(['warranty.product', 'warranty.user'])
+            ->whereUserId(Auth::user()->id)
+            ->where('id', $id)
+            ->firstOrFail();
 
         // dd($inquiry);
 
@@ -166,16 +170,20 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
+        $userId = Auth::user()->id;
+
         // get the warranty info for the id
-        $warranty = Warranty::with('product', 'inquiries', 'inquiries.user', 'inquiries.responses.user')
-            ->findOrFail($id);
+        $warranty = Warranty::with(['product', 'inquiries.user', 'inquiries.responses.user'])
+            ->whereUserId($userId)
+            ->where('id', $id)
+            ->firstOrFail();
 
         // dd($warranty);
 
         // check if this warranty does not have a inquiries for the ux
         $containsInquiries = $warranty->inquiries->isNotEmpty();
 
-        $history = WarrantyInquiries::where('warranty_id', $warranty->id)->get();
+        $history = WarrantyInquiries::with('user')->where('warranty_id', $warranty->id)->get();
 
         // use the temporary helper for message
         $messages = $this->inquiryMessages($warranty->inquiries);
@@ -187,29 +195,5 @@ class CustomerController extends Controller
             'messages' => $messages,
             'containsInquiries' => $containsInquiries
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

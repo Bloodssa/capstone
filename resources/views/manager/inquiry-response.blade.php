@@ -10,7 +10,7 @@
             'closed' => 3,
         ];
 
-        $currentStatus = $status[$inquiry->status] ?? 0;
+        $currentStatus = $status[$inquiry->status->value] ?? 0;
 
         $progress = [
             'open' => [
@@ -129,7 +129,7 @@
                                         </div>
                                         <div>
                                             <h3 class="text-sm font-bold text-neutral-900">Inquiry
-                                                {{ Str::title($msg->status) }}</h3>
+                                                {{ $msg->status->label() }}</h3>
                                             <p class="text-xs text-neutral-500">
                                                 {{ $msg->created_at->format('F j, Y') }}</p>
                                         </div>
@@ -141,7 +141,7 @@
                                         <span
                                             class="text-sm font-semibold text-neutral-500">{{ $msg->user->name }}</span>
                                         <x-icons.badge type="{{ $msg->status }}" size="sm">
-                                            {{ Str::title($msg->status) }}
+                                            {{ $msg->status->label() }}
                                         </x-icons.badge>
                                     </div>
                                 </div>

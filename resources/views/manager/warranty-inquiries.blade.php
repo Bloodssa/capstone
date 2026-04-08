@@ -84,7 +84,7 @@
                                 </td>
                                 <td class="whitespace-nowrap text-sm text-neutral-900">
                                     <x-icons.badge type="{{ $warrantyInquiry->status }}" size="md">
-                                        {{ Str::title($warrantyInquiry->status) }}
+                                        {{ $warrantyInquiry->status->label() }}
                                     </x-icons.badge>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">

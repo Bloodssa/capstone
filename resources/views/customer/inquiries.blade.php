@@ -38,7 +38,7 @@
                         </h3>
 
                         <x-icons.badge type="{{ $inquiry->status }}" size="sm">
-                            {{ Str::title($inquiry->status) }}
+                            {{ $inquiry->status->label() }}
                         </x-icons.badge>
                     </div>
 

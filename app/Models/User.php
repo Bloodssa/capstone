@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -35,6 +36,20 @@ class User extends Authenticatable
         'remember_token',
         'google_id'
     ];
+
+    // cast the enum
+    protected $casts = [
+        'role' => UserRole::class
+    ];
+
+    /**
+     * for validation
+     * @param array $roles of the users
+     */
+    public function hasAnyRole(array $allowedRoles): bool
+    {
+        return in_array($this->role->value, $allowedRoles, true);
+    }
 
     /**
      * Relationship of the warranties

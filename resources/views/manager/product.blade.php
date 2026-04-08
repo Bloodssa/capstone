@@ -1,7 +1,7 @@
 <x-admin-layout>
 
-    @if (session('productAdded'))
-        <x-ui.toast type="success" message="{{ session('productAdded') }}" />
+    @if (session('success'))
+        <x-ui.toast type="success" message="{{ session('success') }}" />
     @endif
 
     <div class="lg:py-6 md:px-6 lg:px-10 max-w-6xl mx-auto" x-data="{

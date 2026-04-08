@@ -12,7 +12,7 @@
         ];
 
         $latestInquiry = $warranty->inquiries->last();
-        $currentStatus = $status[$latestInquiry->status] ?? 0;
+        $currentStatus = $status[$latestInquiry->status->value] ?? 0;
 
         $progress = [
             'open' => [
@@ -126,7 +126,7 @@
                             <div class="mt-4 pt-4 border-t border-gray-300 flex justify-between items-center">
                                 <span class="text-sm font-semibold text-neutral-500">{{ $msg->user->name }}</span>
                                 <x-icons.badge type="{{ $msg->status }}" size="sm">
-                                    {{ $msg->status }}
+                                    {{ $msg->status->label() }}
                                 </x-icons.badge>
                             </div>
                         </div>

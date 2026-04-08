@@ -11,11 +11,6 @@ enum WarrantyStatusType:string
 
     public function label(): string
     {
-        return match($this) {
-            self::ACTIVE => 'Active',
-            self::PENDING => 'Pending',
-            self::NEAR_EXPIRY => 'Expiring Soon',
-            self::EXPIRED => 'Expired'
-        };  
+        return ucfirst($this->value);
     }
 }

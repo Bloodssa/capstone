@@ -16,7 +16,7 @@
             </svg>
         @endif
 
-        <button
+        <a href="{{ $href }}"
             @class([
                 'inline-flex items-center text-sm font-medium transition-colors',
                 'text-neutral-500 hover:text-neutral-900' => !$active,
@@ -25,7 +25,7 @@
             @if($active) aria-current="page" @endif
         >
             {{ $name }}
-        </button>
+        </a>
 
     </div>
 </li>

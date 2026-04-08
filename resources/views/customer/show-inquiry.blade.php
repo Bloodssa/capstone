@@ -11,7 +11,7 @@
                     Inquiry for {{ $inquiry->warranty->product->name }}
                 </h1>
                 <p class="text-xs text-neutral-500">
-                    {{ ucfirst($inquiry->status) }}
+                    {{ $inquiry->status->label() }}
                 </p>
             </div>
         </div>
@@ -34,7 +34,7 @@
                     <div class="flex justify-between">
                         <span class="text-sm text-neutral-500">Status</span>
                         <x-icons.badge type="{{ $inquiry->status }}" size="sm">
-                            {{ Str::title($inquiry->status) }}
+                            {{ $inquiry->status->label() }}
                         </x-icons.badge>
                     </div>
 

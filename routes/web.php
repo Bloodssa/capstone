@@ -71,7 +71,7 @@ Route::middleware(['auth', 'manager'])->group(function () {
     // Product
     Route::get('/products', [ProductController::class, 'index'])->name('add-product');
     Route::post('/products', [ProductController::class, 'store'])->name('store-product');
-    Route::put('/products', [ProductController::class, 'update'])->name('update-product');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('update-product');
     Route::delete('/products', [ProductController::class, 'destroy'])->name('delete-product');
 
     // Generate PDF Report
