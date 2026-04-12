@@ -13,3 +13,12 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Disable dark mode */
+@variant dark (false);
+
+@layer {
+  .table-text {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-neutral-900;
+  }
+}

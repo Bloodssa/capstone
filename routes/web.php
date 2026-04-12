@@ -54,7 +54,6 @@ Route::middleware(['auth', 'manager'])->group(function () {
     // Asidebar Routes
     Route::get('/dashboard', [ManagerController::class, 'index'])->name('dashboard');
     Route::get('/register-warranty', [ManagerController::class, 'register'])->name('register-warranty');
-    Route::get('/active-warranties', [ManagerController::class, 'activeWarranties'])->name('active-warranties');
     Route::get('/warranty-inquiries', [ManagerController::class, 'warrantyInquiries'])->name('warranty-inquiries');
     Route::get('/inquiry-response/{id}', [ManagerController::class, 'inquiryResponse'])->name('inquiry-action');
     Route::get('/active-warranties', [ManagerController::class, 'activeWarranties'])->name('active-warranties');
@@ -67,6 +66,7 @@ Route::middleware(['auth', 'manager'])->group(function () {
     Route::post('/register-warranty', [WarrantyController::class, 'store'])->name('register-warranty-details');
     Route::post('/response', [WarrantyController::class, 'response'])->name('response');
     Route::patch('/warranty-status/{id}', [WarrantyController::class, 'update'])->name('inquiry-status');
+    Route::post('/create-employee', [ManagerController::class, 'store'])->name('create-employee');
     
     // Product
     Route::get('/products', [ProductController::class, 'index'])->name('add-product');

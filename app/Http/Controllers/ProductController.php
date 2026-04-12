@@ -13,10 +13,28 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $products = Product::query()
+            ->when($request->search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10);
+        $categories = [
+            'desktop-components' => 'Components',
+            'laptop' => 'Laptops',
+            'graphics-card' => 'Graphics Card',
+            'power-supply' => 'Power Suplly',
+            'peripherals' => 'Peripherals',
+            'storage' => 'Strorages',
+            'monitor' => 'Monitor'
+        ];
+
         return view('manager.product', [
-            'products' => Product::all()
+            'products' => $products,
+            'categories' => $categories
         ]);
     }
 

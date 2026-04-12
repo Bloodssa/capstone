@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enum\WarrantyStatusType;
 use App\Mail\WarrantyNearExpiry;
 use App\Models\Warranty;
 use Illuminate\Console\Command;
@@ -33,37 +34,37 @@ class WarrantyStatusNotification extends Command
     public function handle()
     {
         $today = now()->today();
-        $thirtyDaysFromNow = now()->addMonth()->endOfDay();
+        $thirtyDays = now()->addMonth()->endOfDay();
 
         // update expiration date to expired
-        $expiredWarranties = Warranty::whereDate('expiry_date', '<=', $today)
-            ->where('status', '!=', 'expired')
-            ->get();
+        Warranty::whereDate('expiry_date', '<=', $today)
+            ->where('status', '!=', WarrantyStatusType::EXPIRED)
+            ->whereNotNull('user_id')
+            ->chunk(100, function ($warranties) {
+                foreach ($warranties as $warranty) {
+                    // update status // note if time is managable remove status in column refawctor ui also
+                    $warranty->update(['status' => WarrantyStatusType::EXPIRED]);
 
-        foreach ($expiredWarranties as $expireWarranty) {
-            $expireWarranty->update(['status' => 'expired']);
-
-            Mail::to($expireWarranty->user->email)->send(new WarrantyExpired($expireWarranty));
-        }
+                    Mail::to($warranty->user->email)->queue(new WarrantyExpired($warranty));
+                }
+            });
 
         // update near expiry
-        $nearExpiry = Warranty::whereDate('expiry_date', '>=', $today)
-            ->whereDate('expiry_date', '<=', $thirtyDaysFromNow)
-            ->where('status', '!=', 'near-expiry')
-            ->where('status', '!=', 'expired')
+        Warranty::whereBetween('expiry_date', [$today, $thirtyDays])
+            ->where('status', '!=', WarrantyStatusType::NEAR_EXPIRY)
+            ->where('status', '!=', WarrantyStatusType::EXPIRED)
             ->whereNotNull('user_id')
-            ->get();
+            ->chunk(100, function ($warranties) {
+                foreach ($warranties as $warranty) {
+                    $warranty->update(['status' => WarrantyStatusType::NEAR_EXPIRY]);
 
-        foreach ($nearExpiry as $nearExpire) {
-            $nearExpire->update(['status' => 'near-expiry']);
-
-            Mail::to($nearExpire->user->email)->send(new WarrantyNearExpiry($nearExpire));
-        }
+                    Mail::to($warranty->user->email)->queue(new WarrantyNearExpiry($warranty));
+                }
+            });
 
         // incase of error mark the updated error if its 30 days up
-        Warranty::whereDate('expiry_date', '>', $thirtyDaysFromNow)
-            ->where('status', 'pending')
-            ->whereNotNull('user_id')
-            ->update(['status' => 'active']);
+        Warranty::whereDate('expiry_date', '>', $thirtyDays)
+            ->where('status', '!=', WarrantyStatusType::ACTIVE)
+            ->update(['status' => WarrantyStatusType::ACTIVE]);
     }
 }

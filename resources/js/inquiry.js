@@ -17,6 +17,8 @@ class Inquiry {
     init() {
         if (!this.select) return;
 
+        this.originalValue = this.select.value;
+
         this.select.addEventListener('change', (e) => this.handleChange(e));
     }
 
@@ -98,12 +100,10 @@ class Inquiry {
     }
 
     closeModal() {
-        // clear modal
         this.modal.remove();
         this.modal = null;
 
-        // reset select
-        this.select.value = this.select.getAttribute('data-current');
+        this.select.value = this.originalValue;
     }
 
     submitSolution() {

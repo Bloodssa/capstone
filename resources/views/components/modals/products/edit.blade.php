@@ -1,4 +1,4 @@
-@props(['data', 'product'])
+@props(['data', 'product', 'categories'])
 
 <x-modals.products.modal :data="$data">
     <div class="mb-8">
@@ -25,7 +25,7 @@
                     </div>
                     <div class="space-y-1">
                         <x-forms.input-label for="category" :hasError="$errors->has('category')" :value="__('Category')" />
-                        <x-forms.dropdown name="category" :value="old('category', $product->category)" />
+                        <x-forms.select name="category" :options="$categories" placeholder="Select Category" :selected="request('status')" class="w-full" />
                         <x-forms.input-error :messages="$errors->get('category')" class="mt-2" />
                     </div>
                     <div class="space-y-1">

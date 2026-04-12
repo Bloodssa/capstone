@@ -2,7 +2,7 @@
 
 namespace App\Enum;
 
-enum WarrantyStatusType:string
+enum WarrantyStatusType: string
 {
     case ACTIVE = 'active';
     case PENDING = 'pending';
@@ -13,4 +13,11 @@ enum WarrantyStatusType:string
     {
         return ucfirst($this->value);
     }
-}
+
+    public static function options(): array
+    {
+        return collect(self::cases())->mapWithKeys(fn($case) => [
+            $case->value => $case->label()
+        ])->toArray();
+    }
+}   

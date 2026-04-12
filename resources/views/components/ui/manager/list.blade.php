@@ -1,4 +1,4 @@
-@props(['products'])
+@props(['products', 'categories'])
 
 <table class="min-w-full divide-y divide-gray-300">
     <thead>
@@ -83,30 +83,24 @@
 
                         {{-- Modals --}}
                         <x-modals.products.view data="openDetails" :product="$product" />
-                        <x-modals.products.edit data="openEdit" :product="$product" />
+                        <x-modals.products.edit data="openEdit" :categories="$categories" :product="$product" />
                         <x-modals.products.delete data="openDelete" :product="$product" />
                     </div>
             </tr>
         @empty
             <tr>
+                @php
+                    $hasFilters = request()->filled('search') || request()->filled('category');
+                @endphp
                 <td colspan="5" class="px-6 py-12 text-center">
-                    <div class="flex flex-col items-center justify-center">
-                        <div
-                            class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-gray-50 border border-gray-200">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-semibold text-neutral-900">No products
-                            found</h3>
-                        <p class="mt-1 text-sm text-neutral-500 max-w-xs mx-auto">Start by
-                            adding a new product to the system.</p>
-                        <button @click="activePage = 'add'"
-                            class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800 transition shadow-sm">
+                    @if($hasFilters)
+                        <x-ui.is-empty title="No products found" subTitle="Try adjusting your search or filter criteria." />
+                    @else
+                        <x-ui.is-empty title="No products found" subTitle="Start by adding a new product to the system." />
+                        <button @click="activePage = 'add'" class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800 transition shadow-sm">
                             Add Your First Product
                         </button>
-                    </div>
+                    @endif
                 </td>
             </tr>
         @endforelse

@@ -4,24 +4,30 @@
             <h1 class="text-2xl font-bold text-neutral-900">Support Inquiries</h1>
             <p class="text-sm text-neutral-500">Track and manage your warranty claims.</p>
         </div>
-        <div class="flex gap-2">
-            <form action="" method="GET">
-                <div class="relative flex-1 group">
-                    <div
-                        class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-gray-600 z-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neutral-500" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <x-forms.text-input type="text" :icon="true" placeholder="Search Warranties..." />
+        <div class="flex flex-col md:flex-row gap-2 w-full md:max-w-2xl items-stretch md:items-center">
+            <div class="flex-1 min-w-0">
+                <x-forms.search-form route="inquiries" />
+            </div>
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="h-10 px-4 bg-white border border-gray-300 rounded-md text-sm font-medium">
+                    Filter by Status
+                </button>
+                <div x-show="open" @click.outside="open = false"
+                    class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md z-50 overflow-hidden">
+                    <a href="{{ route('inquiries', ['search' => request('search')]) }}"
+                        class="block px-4 py-2 text-sm hover:bg-gray-100 {{ !request('status') ? 'bg-gray-100 font-semibold' : '' }}">
+                        All
+                    </a>
+                    @foreach (\App\Enum\InquiryStatusType::cases() as $status)
+                        <a href="{{ route('inquiries', ['status' => $status->value, 'search' => request('search')]) }}"
+                            class="block px-4 py-2 text-sm hover:bg-gray-100 {{ request('status') === $status->value ? 'bg-gray-100 font-semibold' : '' }}">
+                            {{ $status->label() }}
+                        </a>
+                    @endforeach
                 </div>
-            </form>
-            <button class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium">
-                Filter by Date
-            </button>
-            <button class="px-4 py-2 bg-neutral-900 text-white rounded-md text-sm font-medium">
+            </div>
+            <button class="h-10 px-4 bg-neutral-900 text-white rounded-md text-sm font-medium">
                 New Inquiry
             </button>
         </div>
@@ -74,7 +80,20 @@
     @else
         <div
             class="flex flex-col items-center justify-center bg-white border rounded-md border-gray-300 w-full min-h-[50vh]">
-            <x-ui.is-empty title="No inquiries yet" subTitle="No support inquiries found." />
+            @php
+                $hasFilters = request('search') || request('status');
+            @endphp
+            @if ($hasFilters)
+                <x-ui.is-empty title="No matching inquiries found" subTitle="Try adjusting your search or status filter" />
+                <a href="{{ route('inquiries') }}" class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md">
+                    Clear filters
+                </a>
+            @else
+                <x-ui.is-empty title="No inquiries yet" subTitle="You haven’t created any support inquiries for your warranties yet" />
+                <a href="{{ route('warranty') }}" class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md">
+                    Browse warranties
+                </a>
+            @endif
         </div>
     @endif
 </x-app-layout>

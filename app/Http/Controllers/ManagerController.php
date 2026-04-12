@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\InquiryStatusType;
+use App\Enum\UserRole;
+use App\Enum\WarrantyStatusType;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\User;
@@ -9,6 +12,9 @@ use App\Models\Warranty;
 use App\Models\WarrantyInquiries;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules;
 
 class ManagerController extends Controller
 {
@@ -80,31 +86,66 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function activeWarranties()
+    public function activeWarranties(Request $request)
     {
-        $warranties = Warranty::with('product', 'user')->where('status', '!=', 'expired')->paginate(10);
+        $warranties = Warranty::with('product', 'user')
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('product', function ($q1) use ($search) {
+                        $q1->where('name', 'like', "%{$search}%");
+                    })
+                        ->orWhereHas('product', function ($q2) use ($search) {
+                            $q2->where('serial_number', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('user', function ($q3) use ($search) {
+                            $q3->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($request->status, function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->paginate(10);
 
         return view('manager.active-warranties', [
             'warranties' => $warranties,
+            'select' => WarrantyStatusType::options()
         ]);
     }
 
-    public function warrantyInquiries()
+    public function warrantyInquiries(Request $request)
     {
-        $warrantyInquiries = WarrantyInquiries::with('user', 'warranty.product')->latest()->get();
+        $warrantyInquiries = WarrantyInquiries::with('user', 'warranty.product')
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('warranty', function ($q2) use ($search) {
+                        $q2->where('serial_number', 'like', "%{$search}%")
+                            ->orWhereHas('product', function ($q3) use ($search) {
+                                $q3->where('name', 'like', "%{$search}%");
+                            });
+                    })->orWhereHas('user', function ($q4) use ($search) {
+                        $q4->where('name', 'like', "%{$search}%");
+                    });
+                });
+            })
+            ->when($request->status, function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->latest()
+            ->paginate(10);
+
         return view('manager.warranty-inquiries', [
-            'warrantyInquiries' => $warrantyInquiries
+            'warrantyInquiries' => $warrantyInquiries,
+            'select' => InquiryStatusType::options()
         ]);
     }
 
     public function inquiryResponse(int $id)
     {
-        $warranty = Warranty::with('product', 'inquiries', 'inquiries.user', 'inquiries.responses.user')
+        $inquiry = WarrantyInquiries::with('warranty.product', 'user', 'responses.user')
             ->findOrFail($id);
-        // dd($inquiry);
 
         // collect and combine inquiry and messages
-        $inquiry = $warranty->inquiries->first();
         $messages = $this->inquiryMessages(collect([$inquiry]));
 
         // dd($messages);
@@ -115,16 +156,23 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function customers()
+    public function customers(Request $request)
     {
         $customers = User::where('role', '=', 'customer')->withCount([
             'warranties as active_warranties_count' => function ($query) {
-                $query->whereIn('status', ['active', 'near-expiry']);
+                $query->whereIn('status', [WarrantyStatusType::ACTIVE, WarrantyStatusType::NEAR_EXPIRY]);
             },
             'warranties as expired_warranties_count' => function ($query) {
-                $query->where('status', 'expired');
+                $query->where('status', WarrantyStatusType::EXPIRED);
             }
-        ])->paginate(10);
+        ])
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(10);
 
         return view('manager.customers', [
             'customers' => $customers
@@ -145,9 +193,21 @@ class ManagerController extends Controller
         return $pdf->download("warranty-report-{$data['periodLabel']}.pdf");
     }
 
-    public function staffAccounts()
+    public function staffAccounts(Request $request)
     {
-        return view('manager.staff-accounts', []);
+        $users = User::whereIn('role', [UserRole::STAFF, UserRole::TECHNICIAN])
+            ->when($request->search, function($query, $search) {
+                $query->where(function($q) use($search) {
+                    $q->where('name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%");
+                });
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('manager.staff-accounts', [
+            'users' => $users
+        ]);
     }
 
     /**
@@ -162,12 +222,12 @@ class ManagerController extends Controller
      * Helper function for pdf and blade reports 
      */
     private function reportsData(Request $request)
-    {   
+    {
         $allowedPeriod = [7, 12, 30];
         $period = $request->get('period', '12');
 
         // prevent error when user tries to put a string in query param
-        if(!in_array($period, $allowedPeriod)) {
+        if (!in_array($period, $allowedPeriod)) {
             $period = 12;
         }
 
@@ -267,15 +327,22 @@ class ManagerController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        // dd($request);
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'password' => ['required', 'string', Rules\Password::defaults()],
+            'role' => ['required', Rule::enum(UserRole::class)]
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role
+        ]);
+
+        return redirect()->back()->with('success', ucfirst($user->role->value) . ' created successfully');
     }
 
     /**

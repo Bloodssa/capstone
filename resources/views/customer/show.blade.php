@@ -63,7 +63,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-neutral-900">
                                     <x-icons.badge type="{{ $his->status }}" size="sm">
-                                        {{ $his->status }}
+                                        {{ $his->status->label() }}
                                     </x-icons.badge>
                                 </td>
                             </tr>
@@ -85,7 +85,7 @@
         </div>
         <div x-show="activeTab === 'inquiry'" x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 translate-y-2">
-            <x-ui.customer.discussion :warranty="$warranty" :haveInquiries="$containsInquiries" :messages="$messages" />
+            <x-ui.customer.discussion :warranty="$warranty" :id="$id" :haveInquiries="$containsInquiries" :messages="$messages" />
         </div>
     </div>
 </x-app-layout>

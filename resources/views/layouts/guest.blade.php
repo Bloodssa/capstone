@@ -26,10 +26,6 @@
 
 <body class="font-sans antialiased min-h-screen flex justify-center items-center" x-init x-cloak>
     <div class="w-full flex justify-center items-center pt-6">
-        <div>
-            {{-- Logo --}}
-        </div>
-
         <div class="w-full sm:max-w-lg mt-6 px-2 sm:px-6 py-4 bg-white overflow-hidden sm:rounded-lg">
             {{ $slot }}
         </div>

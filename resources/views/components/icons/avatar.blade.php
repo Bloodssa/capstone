@@ -1,10 +1,10 @@
 @props([
     'name' => 'Guest',
-    'size' => 'md'
+    'size' => 'md',
 ])
 
 @php
-    $sizes = match($size) {
+    $sizes = match ($size) {
         'xs' => 'w-6 h-6 text-xs',
         'sm' => 'w-8 h-8 text-sm',
         'md' => 'w-10 h-10 text-base',
@@ -14,8 +14,10 @@
     $firstLetter = Str::upper(Str::substr($name, 0, 1)) ?: 'G';
 @endphp
 
-<div {{ $attributes->merge(['class' => "relative cursor-pointer inline-flex items-center justify-center overflow-hidden bg-blue-900 rounded-full shrink-0 $sizes"]) }}>
-    <span class="font-semibold text-white leading-none">
+<div
+    {{ $attributes->merge(['class' => "relative cursor-pointer inline-flex items-center justify-center overflow-hidden bg-neutral-900 rounded-full shrink-0 $sizes"]) }}>
+    <span class="font-semibold text-white leading-none"
+        @if ($attributes->has('x-bind:name') || $attributes->has(':name')) x-text="user.name ? user.name.charAt(0).toUpperCase() : '{{ $firstLetter }}'" @endif>
         {{ $firstLetter }}
     </span>
 </div>
