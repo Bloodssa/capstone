@@ -1,41 +1,46 @@
-@props(['products', 'categories'])
-
-<table class="min-w-full divide-y divide-gray-300">
+@props(['products', 'categoriesForm', 'categoriesFilter'])
+<x-ui.manager.table-search name="category" route="add-product" statusRoute="add-product" :all="true"
+    placeholder="Search product name, brand or serial number" :select="$categoriesFilter">
+    <button @click="openStore = true"
+        class="px-4 py-1.5 bg-neutral-900 text-white font-semibold rounded-md hover:bg-neutral-800 transition">
+        Add Product
+    </button>
+</x-ui.manager.table-search>
+<table class="min-w-full divide-y divide-gray-300 border-t border-gray-300">
     <thead>
         <tr>
-            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Product
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Category
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Brand
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Warranty
-                Duration</th>
-            <th scope="col" class="px-6 py-3 text-right text-sm font-semibold text-neutral-900">Actions
-            </th>
+            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Product</th>
+            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Category</th>
+            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Brand</th>
+            <th scope="col" class="px-6 py-3 text-left text-sm font-semibold text-neutral-900">Warranty Duration</th>
+            <th scope="col" class="px-6 py-3 text-right text-sm font-semibold text-neutral-900">Actions</th>
         </tr>
     </thead>
     <tbody class="bg-white divide-y divide-gray-300">
         @forelse ($products as $product)
-            <tr>
+            <tr x-data="{
+                openActions: false,
+                openEdit: {{ $errors->any() && old('product_id') == $product->id ? 'true' : 'false' }},
+                openDelete: false,
+                openDetails: false
+            }">
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center space-x-2">
                         <div class="h-10 w-10 shrink-0">
                             <img class="h-10 w-10 rounded-md object-cover border border-gray-200"
                                 src="{{ $product->image_url }}" alt="Product">
                         </div>
-                        <div class="text-sm font-semibold text-gray-900">
-                            {{ $product->name }}</div>
+                        <div class="text-sm font-semibold text-gray-900">{{ $product->name }}</div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                    {{ $product->category }}</td>
+                    {{ $product->category?->name ?? 'N/A' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                     {{ $product->brand }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                     {{ $product->warranty_duration }} Months</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div x-data="{ openActions: false, openEdit: false, openDelete: false, openDetails: false }">
+                    <div>
                         <button @click="openActions = !openActions"
                             class="text-gray-400 hover:text-gray-600 transition p-2 rounded-full hover:bg-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -48,7 +53,7 @@
                         </button>
                         <div x-show="openActions" @click.outside="openActions = false"
                             class="bg-white h-auto py-1 w-auto absolute right-18 rounded-md border border-gray-300 flex flex-col all-border items-start z-1000">
-                            <button @click="openDetails = !openDetails"
+                            <button @click="openDetails = true; openActions = false"
                                 class="w-full group flex items-center px-4 py-2 text-sm text-neutral-900 hover:bg-gray-100">
                                 <svg class="mr-3 h-4 w-4 text-neutral-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -59,7 +64,7 @@
                                 </svg>
                                 View
                             </button>
-                            <button @click="openEdit = !openEdit"
+                            <button @click="openEdit = true; openActions = false"
                                 class="w-full group flex items-center px-4 py-2 text-sm text-neutral-900 hover:bg-gray-100">
                                 <svg class="mr-3 h-4 w-4 text-neutral-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -69,7 +74,7 @@
                                 Edit
                             </button>
                             <div class="py-1 border-t border-gray-300">
-                                <button @click="openDelete = !openDelete"
+                                <button @click="openDelete = true; openActions = false"
                                     class="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                                     <svg class="mr-3 h-4 w-4 text-red-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -80,11 +85,10 @@
                                 </button>
                             </div>
                         </div>
-
                         {{-- Modals --}}
                         <x-modals.products.view data="openDetails" :product="$product" />
-                        <x-modals.products.edit data="openEdit" :categories="$categories" :product="$product" />
-                        <x-modals.products.delete data="openDelete" :product="$product" />
+                        <x-modals.products.edit data="openEdit" :categories="$categoriesForm" :product="$product" />
+                        <x-modals.products.delete data="openDelete" title="Delete Product" :name="$product->name" :route="route('delete-product', $product->id)" />
                     </div>
             </tr>
         @empty
@@ -93,11 +97,14 @@
                     $hasFilters = request()->filled('search') || request()->filled('category');
                 @endphp
                 <td colspan="5" class="px-6 py-12 text-center">
-                    @if($hasFilters)
-                        <x-ui.is-empty title="No products found" subTitle="Try adjusting your search or filter criteria." />
+                    @if ($hasFilters)
+                        <x-ui.is-empty title="No products found"
+                            subTitle="Try adjusting your search or filter criteria." />
                     @else
-                        <x-ui.is-empty title="No products found" subTitle="Start by adding a new product to the system." />
-                        <button @click="activePage = 'add'" class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800 transition shadow-sm">
+                        <x-ui.is-empty title="No products found"
+                            subTitle="Start by adding a new product to the system." />
+                        <button @click="activePage = 'add'"
+                            class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800 transition shadow-sm">
                             Add Your First Product
                         </button>
                     @endif
@@ -106,3 +113,9 @@
         @endforelse
     </tbody>
 </table>
+
+@if ($products->hasPages())
+    <div class="px-3 py-2 w-full border-t border-gray-300">
+        {{ $products->links() }}
+    </div>
+@endif

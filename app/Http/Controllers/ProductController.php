@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -15,30 +18,40 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $products = Product::query()
+        $products = Product::with('category')
             ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('brand', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('brand', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->category, function ($query, $slug) {
+                $query->whereHas('category', function ($q) use ($slug) {
+                    $q->where('slug', $slug);
+                });
             })
             ->latest()
             ->paginate(10);
-        $categories = [
-            'desktop-components' => 'Components',
-            'laptop' => 'Laptops',
-            'graphics-card' => 'Graphics Card',
-            'power-supply' => 'Power Suplly',
-            'peripherals' => 'Peripherals',
-            'storage' => 'Strorages',
-            'monitor' => 'Monitor'
-        ];
+
+        $categories = Category::query()
+            ->when($request->category_search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10, ['*'], 'categories_page');
+
+        $categoriesForFilter = Category::pluck('name', 'slug');
+        $categoriesForForm = Category::pluck('name', 'id');
 
         return view('manager.product', [
             'products' => $products,
-            'categories' => $categories
+            'categories' => $categories,
+            'categoriesForForm' => $categoriesForForm,
+            'categoriesForFilter' => $categoriesForFilter
         ]);
     }
 
-    /**
+    /** 
      * Store a newly created resource in storage.
      */
     public function store(StoreProductRequest $request)
@@ -65,16 +78,11 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         if ($request->hasFile('product_image_url')) {
-
-            // delete old image
             if ($product->product_image_url && Storage::disk('public')->exists($product->product_image_url)) {
                 Storage::disk('public')->delete($product->product_image_url);
-
-                // upload the new image and save a path
-                $imagePath = $request->file('product_image_url')->store('products', 'public');
-
-                $data['product_image_url'] = $imagePath;
             }
+            $imagePath = $request->file('product_image_url')->store('products', 'public');
+            $data['product_image_url'] = $imagePath;
         }
 
         $product->update($data);
@@ -85,13 +93,14 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request)
+    public function destroy(int $id)
     {
-        $request->validate([
-            'product_id' => ['required', 'exists:products,id']
-        ]);
+        $product = Product::withCount('warranties')
+            ->findOrFail($id);
 
-        $product = Product::findOrFail($request->product_id);
+        if ($product->warranties_count > 0) {
+            return back()->with('error', "Cannot delete {$product->name}. It has active warranty records.");
+        }
 
         // delete image if exists
         if ($product->product_image_url && Storage::disk('public')->exists($product->product_image_url)) {
@@ -103,5 +112,56 @@ class ProductController extends Controller
         $product->delete();
 
         return back()->with('success', "Product {$productName} deleted successfully");
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255']
+        ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator, 'category')
+                ->withInput();
+        }
+
+        $data = $validator->validated();
+        // create a slug
+        $data['slug'] = Str::slug($data['name']);
+        $category = Category::create($data);
+
+        return back()->with('success', 'Category ' . $category['name'] . ' created');
+    }
+
+    public function updateCategory(Request $request, int $id)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255']
+        ]);
+
+        $category = Category::findOrFail($id);
+        $category->name = $request->name;
+        $category->save();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Category updated successfully.');
+    }
+
+    public function destroyCategory(int $id)
+    {
+        $category = Category::findOrFail($id);
+
+        if ($category->product()->count() > 0) {
+            return back()->with('error', 'Cannot delete category with existing products.');
+        }
+
+        // delete if passed validation
+        $category->delete();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Category deleted successfully.');
     }
 }

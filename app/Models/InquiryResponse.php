@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enum\InquiryResponseType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InquiryResponse extends Model
 {
@@ -21,12 +22,12 @@ class InquiryResponse extends Model
 
     protected $touches = ['warrantyInquiries'];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function warrantyInquiries()
+    public function warrantyInquiries(): BelongsTo
     {
         return $this->belongsTo(WarrantyInquiries::class);
     }

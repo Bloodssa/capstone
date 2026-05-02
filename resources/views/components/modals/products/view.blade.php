@@ -23,7 +23,7 @@
 
         <div class="p-4">
             <p class="text-sm text-neutral-500">Category</p>
-            <p class="text-neutral-900 font-semibold">{{ $product->category }}</p>
+            <p class="text-neutral-900 font-semibold">{{ $product->category?->name ?? 'N/A' }}</p>
         </div>
 
         <div class="p-4">

@@ -69,7 +69,7 @@
                         <td class="hidden lg:table-cell px-4 py-3 align-middle">
                             <div class="min-w-0 space-y-2">
                                 <p class="text-sm text-neutral-900 font-semibold truncate">
-                                    {{ $warranty->product->category }}
+                                    {{ $warranty->product->category->name }}
                                 </p>
                                 <p class="text-xs text-neutral-500 whitespace-nowrap">
                                     Purchased {{ $warranty->purchase_date->format('M d, Y') }}

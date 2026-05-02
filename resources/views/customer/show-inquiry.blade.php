@@ -126,7 +126,7 @@
                         <p class="text-md font-bold text-neutral-900">
                             {{ $inquiry->warranty->product->name }}
                         </p>
-                        <p class="text-sm text-neutral-500">{{ $inquiry->warranty->product->category }}</p>
+                        <p class="text-sm text-neutral-500">{{ $inquiry->warranty->product->category->name }}</p>
                     </div>
                 </div>
 

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enum\InquiryStatusType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WarrantyInquiries extends Model
 {
@@ -20,17 +22,17 @@ class WarrantyInquiries extends Model
         'attachments' => 'array'
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function warranty()
+    public function warranty(): BelongsTo
     {
         return $this->belongsTo(Warranty::class);
     }
 
-    public function responses()
+    public function responses(): HasMany
     {
         return $this->hasMany(InquiryResponse::class);
     }

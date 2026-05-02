@@ -19,6 +19,9 @@
                     <x-ui.nav-link :href="route('inquiries')" :active="request()->routeIs('inquiries', 'inquiry.show')">
                         {{ __('Inquiries') }}
                     </x-ui.nav-link>
+                    <x-ui.nav-link :href="route('view-products')" :active="request()->routeIs('view-products')">
+                        {{ __('Products') }}
+                    </x-ui.nav-link>
                     <x-ui.nav-link :href="route('history')" :active="request()->routeIs('history')">
                         {{ __('History') }}
                     </x-ui.nav-link>

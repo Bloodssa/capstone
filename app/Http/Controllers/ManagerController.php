@@ -54,10 +54,11 @@ class ManagerController extends Controller
         // dd($months);
 
         $products = DB::table('products as p')
+            ->join('categories as c', 'p.category_id', '=', 'c.id')
             ->join('warranties as w', 'p.id', '=', 'w.product_id')
             ->join('warranty_inquiries as wi', 'w.id', '=', 'wi.warranty_id')
-            ->selectRaw('p.name, p.product_image_url, p.category, COUNT(wi.id) as total_inquiries')
-            ->groupBy('p.id', 'p.name', 'p.category', 'product_image_url')
+            ->selectRaw('p.name, p.product_image_url, c.name as category_name, COUNT(wi.id) as total_inquiries')
+            ->groupBy('p.id', 'p.name', 'c.name', 'product_image_url')
             ->orderByDesc('total_inquiries')
             ->limit(5)
             ->get();
@@ -142,7 +143,7 @@ class ManagerController extends Controller
 
     public function inquiryResponse(int $id)
     {
-        $inquiry = WarrantyInquiries::with('warranty.product', 'user', 'responses.user')
+        $inquiry = WarrantyInquiries::with('warranty.product.category', 'user', 'responses.user')
             ->findOrFail($id);
 
         // collect and combine inquiry and messages

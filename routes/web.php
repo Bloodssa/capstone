@@ -37,8 +37,9 @@ Route::middleware(['auth', 'customer', 'verified'])->group(function () {
 
     Route::get('/home', [CustomerController::class, 'index'])->name('home');
     Route::get('/warranty', [CustomerController::class, 'list'])->name('warranty');
-    Route::get('/history', [CustomerController::class, 'history'])->name('history');
     Route::get('/inquiries', [CustomerController::class, 'inquiries'])->name('inquiries');
+    Route::get('/view-products', [CustomerController::class, 'products'])->name('view-products');
+    Route::get('/history', [CustomerController::class, 'history'])->name('history');
     Route::get('/inquiries/{id}', [CustomerController::class, 'showInquiry'])->name('inquiry.show');
     Route::get('/warranty/{id}', [CustomerController::class, 'show'])->name('warranty.show');
 
@@ -72,7 +73,10 @@ Route::middleware(['auth', 'manager'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('add-product');
     Route::post('/products', [ProductController::class, 'store'])->name('store-product');
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('update-product');
-    Route::delete('/products', [ProductController::class, 'destroy'])->name('delete-product');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('delete-product');
+    Route::post('/categories', [ProductController::class, 'storeCategory'])->name('store-category');
+    Route::put('/categories/{id}', [ProductController::class, 'updateCategory'])->name('update-category');
+    Route::delete('/categories/{id}', [ProductController::class, 'destroyCategory'])->name('delete-category');
 
     // Generate PDF Report
     Route::get('/generate-report', [ManagerController::class, 'generateReport'])->name('generate');

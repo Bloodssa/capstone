@@ -82,7 +82,7 @@
                             <p class="text-md font-bold text-neutral-900">
                                 {{ $inquiry->warranty->product->name }}
                             </p>
-                            <p class="text-sm text-neutral-500">{{ $inquiry->warranty->product->category }}</p>
+                            <p class="text-sm text-neutral-500">{{ $inquiry->warranty->product->category->name }}</p>
                         </div>
                     </div>
                     <div class="border-t border-gray-300 px-5">
@@ -145,5 +145,5 @@
             </div>
         </div>
     </div>
-    @vite(['resources/js/inquiry.js'])
+    @vite(['resources/js/inquiry/inquiryStatus.js'])
 </x-admin-layout>

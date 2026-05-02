@@ -9,6 +9,7 @@ use App\Models\Warranty;
 use App\Models\WarrantyInquiries;
 use Illuminate\Support\Str;
 use App\Enum\WarrantyStatusType;
+use App\Models\Product;
 
 class CustomerController extends Controller
 {
@@ -57,7 +58,7 @@ class CustomerController extends Controller
      */
     public function list(Request $request)
     {
-        $warranties = Warranty::with('product')
+        $warranties = Warranty::with('product.category')
             ->whereUserId(Auth::user()->id)
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -78,6 +79,23 @@ class CustomerController extends Controller
         ]);
     }
 
+    /**
+     * Display products and cusomer owned products
+     */
+    public function products(Request $request)
+    {
+        $products = Product::with('category')
+            ->when($request->search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10);
+
+        return view('customer.product', [
+            'products' => $products
+        ]);
+    }
     /**
      * Display list of history
      */
@@ -159,19 +177,19 @@ class CustomerController extends Controller
      */
     public function inquiries(Request $request)
     {
-        $inquiries = WarrantyInquiries::with(['warranty.product', 'warranty'])
+        $inquiries = WarrantyInquiries::with(['warranty.product.category', 'warranty'])
             ->whereUserId(Auth::user()->id)
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->whereHas('warranty', function($q1) use($search) {
+                    $q->whereHas('warranty', function ($q1) use ($search) {
                         $q1->where('serial_number', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('warranty.product', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%");
-                    });
+                        ->orWhereHas('warranty.product', function ($q2) use ($search) {
+                            $q2->where('name', 'like', "%{$search}%");
+                        });
                 });
             })
-            ->when($request->status, function($query, $status) {
+            ->when($request->status, function ($query, $status) {
                 $query->where('status', $status);
             })
             ->latest('updated_at')
@@ -184,7 +202,7 @@ class CustomerController extends Controller
 
     public function showInquiry(string $id)
     {
-        $inquiry = WarrantyInquiries::with(['warranty.product', 'warranty.user'])
+        $inquiry = WarrantyInquiries::with(['warranty.product.category', 'warranty.user'])
             ->whereUserId(Auth::user()->id)
             ->where('id', $id)
             ->firstOrFail();
@@ -204,7 +222,7 @@ class CustomerController extends Controller
         $userId = Auth::id();
 
         // get the warranty info for the id
-        $warranty = Warranty::with(['product', 'inquiries', 'inquiries.user', 'inquiries.responses.user'])
+        $warranty = Warranty::with(['product.category', 'inquiries', 'inquiries.user', 'inquiries.responses.user'])
             ->whereUserId($userId)
             ->where('id', $id)
             ->firstOrFail();

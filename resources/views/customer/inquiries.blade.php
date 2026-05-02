@@ -59,7 +59,7 @@
                         <div class="flex-1">
                             <p class="text-xs font-bold text-neutral-900">
                                 {{ $inquiry->warranty->product->brand }} -
-                                {{ $inquiry->warranty->product->category }}
+                                {{ $inquiry->warranty->product->category->name }}
                             </p>
 
                             <p class="text-xs text-neutral-500">

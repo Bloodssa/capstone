@@ -47,7 +47,7 @@
                                         {{ $reportedProducts->name }}
                                     </h3>
                                     <p class="text-neutral-500 text-xs mt-0.5">
-                                        {{ $reportedProducts->category }}
+                                        {{ $reportedProducts->category_name }}
                                     </p>
                                 </div>
                             </div>

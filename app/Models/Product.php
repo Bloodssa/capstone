@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
     protected $fillable = [
-        'name', 'category', 'brand', 
+        'name', 'category_id', 'brand', 
         'warranty_duration', 'product_image_url', 
         'service_center_name', 'service_center_address'
     ];
@@ -15,12 +17,17 @@ class Product extends Model
     /**
      * Image path getter
      */
-    public function getImageUrlAttribute()
+    public function getImageUrlAttribute(): string
     {
         return asset('storage/' . $this->product_image_url);
     }
 
-    public function warranties()
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function warranties(): HasMany
     {
         return $this->hasMany(Warranty::class);
     }

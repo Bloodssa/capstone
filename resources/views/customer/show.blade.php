@@ -89,3 +89,4 @@
         </div>
     </div>
 </x-app-layout>
+@vite(['resources/js/inquiry/inquiry.js']);

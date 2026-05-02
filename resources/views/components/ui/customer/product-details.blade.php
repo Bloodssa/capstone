@@ -19,7 +19,7 @@
             <div class="grid grid-cols-2 gap-6">
                 <div>
                     <h1 class="text-neutral-500 text-sm">Category</h1>
-                    <p class="text-md text-neutral-900 font-semibold">{{ $warranty->product->category }}</p>
+                    <p class="text-md text-neutral-900 font-semibold">{{ $warranty->product->category->name }}</p>
                 </div>
                 <div class="block">
                     <h1 class="text-neutral-500 text-sm">Warranty Status</h1>

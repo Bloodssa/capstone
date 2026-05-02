@@ -1,6 +1,6 @@
 @props(['messages'])
 
-<div class="flex-1 overflow-y-auto p-5 space-y-4 bg-white">
+<div id="chat-box-container" class="flex-1 overflow-y-auto p-5 space-y-4 bg-white">
     @foreach ($messages as $msg)
         @php
             $isCustomer = $msg->type === 'message' && $msg->user?->id === auth()->id();
@@ -75,10 +75,10 @@
                         @endisset
 
                         <span class="text-xs text-gray-500 mt-1">
-                            @if ($msg->created_at->greaterThan(now()->subDay()))
+                            @if ($msg->created_at?->greaterThan(now()->subDay()))
                                 {{ $msg->created_at->diffForHumans() }}
                             @else
-                                {{ $msg->created_at->format('F j, Y, g:i a') }}
+                                {{ $msg->created_at?->format('F j, Y, g:i a') }}
                             @endif
                         </span>
                     </div>

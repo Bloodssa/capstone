@@ -28,13 +28,52 @@
             </div>
         </div>
 
-        <x-ui.chat-box :messages="$messages" />
+        <div id="chat-box-container" class="flex-1 overflow-y-auto p-5 space-y-4 bg-white"></div>
+        {{-- <x-ui.chat-box :messages="$messages" /> --}}
 
-        <x-forms.reply :action="route('inquiry-response')" buttonText="Response" placeholder="Response to the inquiry of the user">
+        <div id="reply-box" class="border-t border-gray-300 p-5 bg-white">
+            <div class="flex items-start space-x-3">
+                <div class="shrink-0 mt-1">
+                    <x-icons.avatar :name="Auth::user()->name" size="sm" />
+                </div>
+
+                <div class="flex-1">
+                    <div id="reply-wrapper" class="border border-gray-300 rounded-md overflow-hidden bg-white">
+                        <div id="preview-container" class="hidden flex gap-3 p-3 overflow-x-auto bg-gray-50 border-b">
+                        </div>
+                        <textarea id="message-input" rows="3" placeholder="Input messages"
+                            class="w-full p-4 text-sm text-neutral-900 placeholder-neutral-500 border-none focus:ring-0 resize-none"></textarea>
+                        <div class="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-t border-gray-300">
+                            <div class="flex items-center gap-2">
+                                <input type="file" id="file-input" class="hidden" multiple accept="image/*">
+                                <label type="button" for="file-input"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-gray-200 rounded-md transition font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span class="text-xs">Add Photos</span>
+                                </label>
+                            </div>
+                            <button id="send-btn"
+                                class="bg-neutral-900 text-white px-6 py-1.5 rounded-md text-sm font-semibold hover:bg-neutral-800">
+                                Response
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            window.INQUIRY_ID = {{ $latestInquiry->id }};
+            window.authUserId = {{ auth()->id() }};
+        </script>
+        {{-- <x-forms.reply :action="route('inquiry-response')" buttonText="Response" placeholder="Response to the inquiry of the user">
             <x-slot name="hiddenInputs">
                 <input type="hidden" name="warranty_inquiries_id" value="{{ $latestInquiry->id }}">
             </x-slot>
-        </x-forms.reply>
+        </x-forms.reply> --}}
     </div>
 @else
     <div class="mx-auto mt-8">
